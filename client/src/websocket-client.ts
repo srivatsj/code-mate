@@ -1,4 +1,5 @@
 import { LLMResponseMessage,ToolCallMessage, ToolResultMessage, UserInputMessage, WSMessage } from '@shared/websocket-types';
+import WebSocket from 'ws';
 
 import { ClientTools } from './tools/client-tools';
 
@@ -12,9 +13,9 @@ export class WebSocketClient {
   }
 
   private setupHandlers(): void {
-    this.ws.onmessage = async (event) => {
-      const message: WSMessage = JSON.parse(event.data);
-      
+    this.ws.on('message', async (data) => {
+      const message: WSMessage = JSON.parse(data.toString());
+
       switch (message.type) {
         case 'tool_call':
           await this.handleToolCall(message as ToolCallMessage);
@@ -26,7 +27,21 @@ export class WebSocketClient {
           this.onError?.(message.payload.message);
           break;
       }
-    };
+    });
+
+    this.ws.on('error', (error) => {
+      console.error('WebSocket error:', error.message);
+      this.onError?.(`Connection error: ${error.message}`);
+    });
+
+    this.ws.on('close', () => {
+      console.log('WebSocket connection closed');
+      this.onError?.('Connection closed');
+    });
+
+    this.ws.on('open', () => {
+      console.log('WebSocket connected');
+    });
   }
 
   private async handleToolCall(message: ToolCallMessage): Promise<void> {

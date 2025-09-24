@@ -2,7 +2,7 @@ import { Box, Text } from 'ink';
 import BigText from 'ink-big-text';
 import React from 'react';
 
-const App: React.FC = () => {
+const Welcome: React.FC = () => {
 	return (
 		<Box flexDirection="column" padding={1}>
 			<BigText
@@ -17,4 +17,4 @@ const App: React.FC = () => {
 	);
 };
 
-export default App;
+export default Welcome;

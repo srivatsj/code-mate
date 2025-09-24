@@ -50,9 +50,15 @@ importers:
       ink-big-text:
         specifier: ^2.0.0
         version: 2.0.0(ink@6.3.1(@types/react@19.1.13)(react@19.1.1))(react@19.1.1)
+      ink-text-input:
+        specifier: ^6.0.0
+        version: 6.0.0(ink@6.3.1(@types/react@19.1.13)(react@19.1.1))(react@19.1.1)
       react:
         specifier: ^19.1.1
         version: 19.1.1
+      ws:
+        specifier: ^8.18.3
+        version: 8.18.3
     devDependencies:
       '@types/node':
         specifier: ^24.5.2
@@ -60,6 +66,9 @@ importers:
       '@types/react':
         specifier: ^19.1.13
         version: 19.1.13
+      '@types/ws':
+        specifier: ^8.18.1
+        version: 8.18.1
       tsx:
         specifier: ^4.20.5
         version: 4.20.5
@@ -1492,6 +1501,13 @@ packages:
     engines: {node: '>=14.16'}
     peerDependencies:
       ink: '>=4'
+      react: '>=18'
+
+  ink-text-input@6.0.0:
+    resolution: {integrity: sha512-Fw64n7Yha5deb1rHY137zHTAbSTNelUKuB5Kkk2HACXEtwIHBCf9OH2tP/LQ9fRYTl1F0dZgbW0zPnZk6FA9Lw==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      ink: '>=5'
       react: '>=18'
 
   ink@6.3.1:
@@ -3943,6 +3959,13 @@ snapshots:
       ink: 6.3.1(@types/react@19.1.13)(react@19.1.1)
       prop-types: 15.8.1
       react: 19.1.1
+
+  ink-text-input@6.0.0(ink@6.3.1(@types/react@19.1.13)(react@19.1.1))(react@19.1.1):
+    dependencies:
+      chalk: 5.6.2
+      ink: 6.3.1(@types/react@19.1.13)(react@19.1.1)
+      react: 19.1.1
+      type-fest: 4.41.0
 
   ink@6.3.1(@types/react@19.1.13)(react@19.1.1):
     dependencies:

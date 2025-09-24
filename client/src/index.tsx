@@ -1,7 +1,12 @@
-#!/usr/bin/env node
 import { render } from 'ink';
 import React from 'react';
 
-import App from './App.js';
+import App from './components/app.js';
+import Welcome from './components/welcome-message.js';
 
-render(<App />);
+render(
+	<>
+		<Welcome />
+		<App />
+	</>
+);
