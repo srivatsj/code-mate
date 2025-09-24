@@ -1,19 +1,24 @@
 {
-    "compilerOptions": {
-      "target": "ES2022",
-      "module": "ESNext",
-      "moduleResolution": "Bundler",
-      "lib": ["ES2022", "DOM"],
-      "jsx": "preserve",
-      "strict": true,
-      "esModuleInterop": true,
-      "skipLibCheck": true,
-      "forceConsistentCasingInFileNames": true,
-      "baseUrl": ".",
-      "paths": {
-        "@shared/*": ["shared/*"]
-      }
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ES2022", "DOM"],
+    "jsx": "preserve",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+
+    "baseUrl": ".",
+    "paths": {
+      "@shared/*": ["shared/src/*"],
+      "@client/*": ["client/src/*"],
+      "@server/*": ["server/src/*"]
     },
-    "include": ["client/**/*", "server/**/*", "shared/**/*"]
-  }
-  
+
+    "declaration": true,
+    "sourceMap": true
+  },
+  "exclude": ["node_modules", "dist"]
+}

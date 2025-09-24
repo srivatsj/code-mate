@@ -1,6 +1,15 @@
 {
     "extends": "../tsconfig.base.json",
-    "compilerOptions": { "rootDir": "src" },
-    "include": ["src", "../shared"]
+    "compilerOptions": {
+      "rootDir": "src",   // server's own source root
+      "outDir": "dist"    // compiled JS will go here
+    },
+    "include": [
+      "src/**/*",         // server source
+      "../shared/src/**/*" // include shared TS files for type-checking
+    ],
+    "references": [
+      { "path": "../shared" }  // optional if using project references
+    ]
 }
   

@@ -6,7 +6,9 @@
   "main": "index.js",
   "scripts": {
     "lint": "eslint \"{client,server,shared}/**/*.{js,ts,jsx,tsx,vue}\"",
-    "lint:fix": "eslint \"{client,server,shared}/**/*.{js,ts,jsx,tsx,vue}\" --fix"
+    "lint:fix": "eslint \"{client,server,shared}/**/*.{js,ts,jsx,tsx,vue}\" --fix",
+    "dev": "pnpm -r run dev",
+    "build": "pnpm -r run build"
   },
   "keywords": [],
   "author": "",

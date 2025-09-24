@@ -1,1 +1,15 @@
-{}
+{
+    "name": "shared",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+      "build": "tsc -p tsconfig.json",
+      "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\"",
+      "lint:fix": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --fix"
+    },
+    "devDependencies": {
+      "typescript": "^5.9.2",
+      "eslint": "^9.36.0"
+    }
+}
+  
