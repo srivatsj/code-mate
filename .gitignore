@@ -1,0 +1,109 @@
+# ========================
+# Node / dependencies
+# ========================
+node_modules/
+.pnp/
+.pnp.js
+# pnpm-lock.yaml should be committed, so DO NOT ignore
+
+# ========================
+# Build / output
+# ========================
+dist/
+build/
+out/
+lib/
+.eslintcache
+*.tsbuildinfo
+*.log
+
+# ========================
+# TypeScript
+# ========================
+*.tsbuildinfo
+
+# ========================
+# VS Code
+# ========================
+.vscode/
+.history/
+*.code-workspace
+
+# ========================
+# OS Files
+# ========================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+
+# ========================
+# Env / secret files
+# ========================
+.env
+.env.local
+.env.*.local
+.env.test
+.env.production
+
+# ========================
+# React / frontend
+# ========================
+coverage/
+.cache/
+.next/
+*.local
+*.tmp
+
+# ========================
+# Hono / serverless
+# ========================
+.vercel/
+.hono/
+
+# ========================
+# Logs
+# ========================
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# ========================
+# WebSocket / IPC / temporary
+# ========================
+*.pid
+*.sock
+*.tmp
+tmp/
+temp/
+
+# ========================
+# Misc / IDEs / editors
+# ========================
+.idea/
+*.iml
+*.sublime-project
+*.sublime-workspace
+*.vscode-test/
+
+# ========================
+# Optional coverage / test reports
+# ========================
+coverage/
+*.lcov
+
+# ========================
+# Ignore binaries / artifacts
+# ========================
+*.exe
+*.dll
+*.so
+*.dylib
+*.tscache
+
+# ========================
+# Storybook / UI testing
+# ========================
+.storybook/
+out-storybook/

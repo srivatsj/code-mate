@@ -1,0 +1,28 @@
+{
+  "name": "code-mate",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Code Mate is an AI-powered coding assistant that helps developers write, understand, and optimize code more efficiently. It integrates with popular code editors and IDEs to provide real-time suggestions, code completions, and explanations.",
+  "main": "index.js",
+  "scripts": {
+    "lint": "eslint \"{client,server,shared}/**/*.{js,ts,jsx,tsx,vue}\"",
+    "lint:fix": "eslint \"{client,server,shared}/**/*.{js,ts,jsx,tsx,vue}\" --fix"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.17.1",
+  "devDependencies": {
+    "@antfu/eslint-config": "^5.4.1",
+    "@typescript-eslint/eslint-plugin": "^8.44.1",
+    "@typescript-eslint/parser": "^8.44.1",
+    "eslint": "^9.36.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-unicorn": "^61.0.2",
+    "eslint-plugin-unused-imports": "^4.2.0",
+    "prettier": "^3.6.2",
+    "typescript": "^5.9.2"
+  }
+}
