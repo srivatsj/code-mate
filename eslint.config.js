@@ -1,11 +1,18 @@
 // eslint.config.js
 import antfu from '@antfu/eslint-config'
-import tsParser from '@typescript-eslint/parser'
 import tsPlugin from '@typescript-eslint/eslint-plugin'
+import tsParser from '@typescript-eslint/parser'
 import simpleSort from 'eslint-plugin-simple-import-sort'
 import unusedImports from 'eslint-plugin-unused-imports'
 
 export default [
+  {
+    ignores: [
+      '**/dist/**',         // ignore dist in all subfolders
+      '**/node_modules/**', // ignore node_modules in all subfolders
+      '**/docs/**' 
+    ]
+  },
   { ...antfu },
 
   {

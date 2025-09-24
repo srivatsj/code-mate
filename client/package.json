@@ -1,1 +1,7 @@
-{}
+{
+  "name": "client",
+  "scripts": {
+    "build": "echo 'Client build not implemented'",
+    "dev": "echo 'Client dev server not implemented'"
+  }
+}

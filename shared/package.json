@@ -4,8 +4,7 @@
     "type": "module",
     "scripts": {
       "build": "tsc -p tsconfig.json",
-      "lint": "eslint \"src/**/*.{ts,tsx,js,jsx}\"",
-      "lint:fix": "eslint \"src/**/*.{ts,tsx,js,jsx}\" --fix"
+      "dev": "echo 'Shared library - no dev server needed'"
     },
     "devDependencies": {
       "typescript": "^5.9.2",
