@@ -1,7 +1,18 @@
 {
   "name": "client",
+  "type": "module",
   "scripts": {
-    "build": "echo 'Client build not implemented'",
-    "dev": "echo 'Client dev server not implemented'"
+    "build": "tsc",
+    "dev": "tsx src/index.tsx"
+  },
+  "dependencies": {
+    "ink": "^6.3.1",
+    "ink-big-text": "^2.0.0",
+    "react": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.13",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2"
   }
 }

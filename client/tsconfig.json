@@ -1,15 +1,18 @@
 {
     "extends": "../tsconfig.base.json",
     "compilerOptions": {
-      "rootDir": "src",   // server's own source root
-      "outDir": "dist"    // compiled JS will go here
+      "rootDir": "src",
+      "outDir": "dist",
+      "module": "ESNext",
+      "target": "ES2022",
+      "jsx": "react-jsx"
     },
     "include": [
-      "src/**/*",         // server source
-      "../shared/src/**/*" // include shared TS files for type-checking
+      "src/**/*",
+      "../shared/src/**/*"
     ],
     "references": [
-      { "path": "../shared" }  // optional if using project references
+      { "path": "../shared" }
     ]
 }
   
