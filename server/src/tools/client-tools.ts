@@ -2,7 +2,7 @@ import { ToolCallMessage,WSMessage } from '@shared/websocket-types';
 import { tool } from 'ai';
 import { z } from 'zod';
 
-export class ToolExecution {
+export class ClientTools {
   constructor(
     private sendToClient: (message: WSMessage) => void,
     private sessionId: string

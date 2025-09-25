@@ -1,12 +1,13 @@
+import { ServerTools } from '@server/tools/server-tools';
 import { ErrorMessage,LLMResponseMessage, ToolResultPayload, WSMessage } from '@shared/websocket-types';
 import { generateText } from 'ai';
 
-import { ToolExecution } from '../tools/tool-execution';
+import { ClientTools } from '../tools/client-tools';
 import { ConversationService } from './conversation-service';
 
 export class AIService {
   private conversationService = new ConversationService();
-  //private serverTools = new ServerTools();
+  private serverTools = new ServerTools();
 
   async processUserInput(
     sessionId: string,
@@ -32,10 +33,11 @@ export class AIService {
   ): Promise<void> {
     try {
       const history = this.conversationService.getHistory(sessionId);
-      const toolExecution = new ToolExecution(sendToClient, sessionId);
+      const clientTools = new ClientTools(sendToClient, sessionId);
       
       const allTools = {
-        ...toolExecution.getClientToolProxies(),
+        ...clientTools.getClientToolProxies(),
+        ...this.serverTools.getTools()
       };
 
       const result = await generateText({
