@@ -20,6 +20,7 @@ export class WebSocketClient {
 
       switch (message.type) {
         case 'tool_call':
+          this.onToolCall?.(message as ToolCallMessage);
           await this.handleToolCall(message as ToolCallMessage);
           break;
         case 'llm_response':
@@ -91,4 +92,5 @@ export class WebSocketClient {
   // Type-safe callbacks
   onLLMResponse?: (message: LLMResponseMessage) => void;
   onError?: (error: string) => void;
+  onToolCall?: (message: ToolCallMessage) => void;
 }
