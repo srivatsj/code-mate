@@ -15,6 +15,7 @@ code-mate/
 
 ```bash
 # Root
+pnpm install        # Always use pnpm to insall any libs
 pnpm dev            # Start all services
 pnpm build          # Build all services
 pnpm lint           # Lint all services

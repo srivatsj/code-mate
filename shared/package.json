@@ -1,14 +1,13 @@
 {
-    "name": "shared",
-    "version": "1.0.0",
-    "type": "module",
-    "scripts": {
-      "build": "tsc -p tsconfig.json",
-      "dev": "echo 'Shared library - no dev server needed'"
-    },
-    "devDependencies": {
-      "typescript": "^5.9.2",
-      "eslint": "^9.36.0"
-    }
+  "name": "shared",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "echo 'Shared library - no dev server needed'"
+  },
+  "devDependencies": {
+    "eslint": "^9.36.0",
+    "typescript": "^5.9.2"
+  }
 }
-  

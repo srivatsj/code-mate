@@ -1,4 +1,4 @@
-import { ConversationMessage } from '../types';
+import { ConversationMessage } from '../common/types';
 
 export class ConversationService {
   private conversations = new Map<string, ConversationMessage[]>();

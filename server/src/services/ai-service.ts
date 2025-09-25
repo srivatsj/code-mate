@@ -2,6 +2,7 @@ import { ServerTools } from '@server/tools/server-tools';
 import { ErrorMessage,LLMResponseMessage, ToolResultPayload, WSMessage } from '@shared/websocket-types';
 import { generateText } from 'ai';
 
+import logger from '../common/logger';
 import { ClientTools } from '../tools/client-tools';
 import { ConversationService } from './conversation-service';
 
@@ -14,6 +15,8 @@ export class AIService {
     userInput: string,
     sendToClient: (message: WSMessage) => void
   ): Promise<void> {
+    logger.info('Processing user input for session %s', sessionId);
+    logger.info('User input: %s', userInput);
     this.conversationService.addUserMessage(sessionId, userInput);
     await this.runGeneration(sessionId, sendToClient);
   }
@@ -23,6 +26,8 @@ export class AIService {
     toolResult: ToolResultPayload,
     sendToClient: (message: WSMessage) => void
   ): Promise<void> {
+    logger.info('Processing tool result for session %s', sessionId);
+    logger.info('Tool result: %o', toolResult);
     this.conversationService.addToolResult(sessionId, toolResult);
     await this.runGeneration(sessionId, sendToClient);
   }
