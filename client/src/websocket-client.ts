@@ -1,4 +1,4 @@
-import { LLMResponseMessage,ToolCallMessage, ToolResultMessage, UserInputMessage, WSMessage } from '@shared/websocket-types';
+import { ErrorMessage,LLMResponseMessage,ToolCallMessage, ToolResultMessage, UserInputMessage, WSMessage } from '@shared/websocket-types';
 import WebSocket from 'ws';
 
 import logger from './common/logger';
@@ -28,8 +28,8 @@ export class WebSocketClient {
           this.onLLMResponse?.(message as LLMResponseMessage);
           break;
         case 'error':
-          logger.info('Error message received: %s', message.payload.message);
-          this.onError?.(message.payload.message);
+          logger.info('Error message received: %s', (message as ErrorMessage).payload.message);
+          this.onError?.((message as ErrorMessage).payload.message);
           break;
       }
     });
@@ -75,7 +75,7 @@ export class WebSocketClient {
     this.send(message);
   }
 
-  private sendToolResult(payload: { result?: any; error?: string }): void {
+  private sendToolResult(payload: { result?: any; error?: string }): void { // eslint-disable-line @typescript-eslint/no-explicit-any
     const message: ToolResultMessage = {
       id: crypto.randomUUID(),
       type: 'tool_result',

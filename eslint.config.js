@@ -68,7 +68,8 @@ export default [
           format: ['PascalCase']
         }
       ],
-      'import/order': 'off'
+      'import/order': 'off',
+      '@typescript-eslint/no-explicit-any': 'error'
     }
   }
 ]

@@ -21,7 +21,7 @@ export class ConversationService {
     });
   }
 
-  addToolResult(sessionId: string, result: any): void {
+  addToolResult(sessionId: string, result: any): void { // eslint-disable-line @typescript-eslint/no-explicit-any
     this.ensureSession(sessionId);
     const content = result.error ? `Error: ${result.error}` : `Result: ${JSON.stringify(result.result)}`;
     this.conversations.get(sessionId)!.push({

@@ -7,12 +7,12 @@ const exec = promisify(execCallback);
 
 interface ToolResult {
     success: boolean;
-    data?: any;
+    data?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     error?: string;
 }
   
 export class ClientTools {
-    async execute(toolName: string, args: Record<string, any>): Promise<ToolResult> {
+    async execute(toolName: string, args: Record<string, any>): Promise<ToolResult> { // eslint-disable-line @typescript-eslint/no-explicit-any
         switch (toolName) {
         case 'read_file':
             return this.readFile(args.path);

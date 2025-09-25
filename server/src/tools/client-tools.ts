@@ -45,7 +45,7 @@ export class ClientTools {
     };
   }
 
-  private sendToolCall(name: string, args: Record<string, any>): void {
+  private sendToolCall(name: string, args: Record<string, any>): void { // eslint-disable-line @typescript-eslint/no-explicit-any
     const message: ToolCallMessage = {
       id: crypto.randomUUID(),
       type: 'tool_call',

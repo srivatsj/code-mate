@@ -1,5 +1,5 @@
 // shared/types.ts
-export interface WSMessage<T = any> {
+export interface WSMessage<T = unknown> {
     id: string;
     type: 'user_input' | 'tool_call' | 'tool_result' | 'llm_response' | 'error';
     payload: T;
@@ -12,11 +12,11 @@ export interface WSMessage<T = any> {
   
   export interface ToolCallPayload {
     name: string;
-    args: Record<string, any>;
+    args: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
   }
   
   export interface ToolResultPayload {
-    result?: any;
+    result?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     error?: string;
   }
   
