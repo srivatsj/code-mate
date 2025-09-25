@@ -1,10 +1,12 @@
-import { ErrorMessage, WSMessage } from '@shared/websocket-types';
+import { ErrorMessage, ToolResultMessage, UserInputMessage, WSMessage } from '@shared/websocket-types';
 import { WebSocket,WebSocketServer } from 'ws';
 
 import logger from './common/logger';
+import { AIService } from './services/ai-service';
 
 export class WebSocketServerHandler {
   private wss: WebSocketServer;
+  private aiService = new AIService();
   private sessions = new Map<string, WebSocket>();
 
   constructor(wss: WebSocketServer) {
@@ -25,10 +27,10 @@ export class WebSocketServerHandler {
 
           switch (message.type) {
             case 'user_input':
-              await this.handleUserInput();
+              await this.handleUserInput(ws, sessionId, message as UserInputMessage);
               break;
             case 'tool_result':
-              await this.handleToolResult();
+              await this.handleToolResult(ws, sessionId, message as ToolResultMessage);
               break;
             default:
               logger.warn('Unknown message type %s from session %s', message.type, sessionId);
@@ -50,12 +52,20 @@ export class WebSocketServerHandler {
     });
   }
 
-  private async handleUserInput(): Promise<void> {
-    
+  private async handleUserInput(ws: WebSocket, sessionId: string, message: UserInputMessage): Promise<void> {
+    await this.aiService.processUserInput(
+      sessionId,
+      message.payload.content,
+      (response) => this.sendToClient(ws, response)
+    );
   }
 
-  private async handleToolResult(): Promise<void> {
-    
+  private async handleToolResult(ws: WebSocket, sessionId: string, message: ToolResultMessage): Promise<void> {
+    await this.aiService.processToolResult(
+      sessionId,
+      message.payload,
+      (response) => this.sendToClient(ws, response)
+    );
   }
 
   private sendToClient(ws: WebSocket, message: WSMessage): void {

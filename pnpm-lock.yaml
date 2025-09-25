@@ -84,6 +84,9 @@ importers:
 
   server:
     dependencies:
+      '@ai-sdk/google':
+        specifier: ^2.0.16
+        version: 2.0.16(zod@4.1.11)
       '@google/generative-ai':
         specifier: ^0.24.1
         version: 0.24.1
@@ -93,6 +96,9 @@ importers:
       ai:
         specifier: ^5.0.51
         version: 5.0.51(zod@4.1.11)
+      dotenv:
+        specifier: ^17.2.2
+        version: 17.2.2
       hono:
         specifier: ^4.9.8
         version: 4.9.8
@@ -135,6 +141,12 @@ packages:
 
   '@ai-sdk/gateway@1.0.28':
     resolution: {integrity: sha512-e9RKgWVDYHsd4UkKCgKQpK+nxLSDydN18yXctzgNlmf2R7BR+HqUsTKJdZT6ArSoXBWBGhyZss0cJJnpm6YVfw==}
+    engines: {node: '>=18'}
+    peerDependencies:
+      zod: ^3.25.76 || ^4
+
+  '@ai-sdk/google@2.0.16':
+    resolution: {integrity: sha512-VN9QO1syIyKxYfAiS5QPZkw0caV6n/mmyvJui3T+lkhGPS2RXTv7nDrtRv8TroNzdPcPWoaZMgJRJD2W7oEZ+g==}
     engines: {node: '>=18'}
     peerDependencies:
       zod: ^3.25.76 || ^4
@@ -1032,6 +1044,10 @@ packages:
   doctrine@2.1.0:
     resolution: {integrity: sha512-35mSku4ZXK0vfCuHEDAwt55dg2jNajHZ1odvF+8SSr82EsZY4QmXfuWso8oEd8zRhVObSN18aM0CjSdoBX7zIw==}
     engines: {node: '>=0.10.0'}
+
+  dotenv@17.2.2:
+    resolution: {integrity: sha512-Sf2LSQP+bOlhKWWyhFsn0UsfdK/kCWRv1iuA2gXAwt3dyNabr6QSj00I2V10pidqz69soatm9ZwZvpQMTIOd5Q==}
+    engines: {node: '>=12'}
 
   dunder-proto@1.0.1:
     resolution: {integrity: sha512-KIN/nDJBQRcXw0MLVhZE9iQHmG68qAVIBg9CqmUYjmQIhgij9U5MFvrqkUL5FbtyyzZuOeOt0zdeRe4UY7ct+A==}
@@ -2639,6 +2655,12 @@ snapshots:
       '@ai-sdk/provider-utils': 3.0.9(zod@4.1.11)
       zod: 4.1.11
 
+  '@ai-sdk/google@2.0.16(zod@4.1.11)':
+    dependencies:
+      '@ai-sdk/provider': 2.0.0
+      '@ai-sdk/provider-utils': 3.0.9(zod@4.1.11)
+      zod: 4.1.11
+
   '@ai-sdk/provider-utils@3.0.9(zod@4.1.11)':
     dependencies:
       '@ai-sdk/provider': 2.0.0
@@ -3480,6 +3502,8 @@ snapshots:
   doctrine@2.1.0:
     dependencies:
       esutils: 2.0.3
+
+  dotenv@17.2.2: {}
 
   dunder-proto@1.0.1:
     dependencies:

@@ -1,3 +1,4 @@
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { ServerTools } from '@server/tools/server-tools';
 import { ErrorMessage,LLMResponseMessage, ToolResultPayload, WSMessage } from '@shared/websocket-types';
 import { generateText } from 'ai';
@@ -5,10 +6,14 @@ import { generateText } from 'ai';
 import logger from '../common/logger';
 import { ClientTools } from '../tools/client-tools';
 import { ConversationService } from './conversation-service';
+import { SYSTEM_PROMPT } from './prompts';
 
 export class AIService {
   private conversationService = new ConversationService();
   private serverTools = new ServerTools();
+  private googleAI = createGoogleGenerativeAI({
+    apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY
+  });
 
   async processUserInput(
     sessionId: string,
@@ -46,9 +51,10 @@ export class AIService {
       };
 
       const result = await generateText({
-        model: 'google/gemini-2.0-flash-exp',
+        model: this.googleAI('gemini-2.5-flash'),
         messages: history,
-        tools: allTools
+        tools: allTools,
+        system: SYSTEM_PROMPT
       });
 
       this.conversationService.addAssistantMessage(sessionId, result.text);
@@ -62,10 +68,12 @@ export class AIService {
 
       sendToClient(response);
     } catch (error) {
+      const errorMessage: string = error instanceof Error ? error.message : String(error);
+      logger.error('Error during generation for session %s: %s', sessionId, errorMessage);
       const errorResponse: ErrorMessage = {
         id: crypto.randomUUID(),
         type: 'error',
-        payload: { message: error instanceof Error ? error.message : String(error) },
+        payload: { message: errorMessage },
         timestamp: Date.now()
       };
       sendToClient(errorResponse);
