@@ -22,10 +22,10 @@ pnpm lint           # Lint all services
 pnpm lint:fix       # Lint:fix all services
 
 # Client
-pnpm run dev        # Run terminal app
+cd client & pnpm run dev        # Run terminal app
 
 # Server
-pnpm run dev        # Start WebSocket server
+cd server & pnpm run dev        # Start WebSocket server
 ```
 
 ## Tech Stack
