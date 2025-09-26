@@ -1,7 +1,7 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { ServerTools } from '@server/tools/server-tools';
 import { ErrorMessage,LLMResponseMessage, ToolResultPayload, WSMessage } from '@shared/websocket-types';
-import { generateText } from 'ai';
+import { generateText, stepCountIs } from 'ai';
 
 import logger from '../common/logger';
 import { ClientTools } from '../tools/client-tools';
@@ -53,7 +53,8 @@ export class AIService {
         model: this.googleAI('gemini-2.5-flash'),
         messages: history,
         tools: allTools,
-        system: SYSTEM_PROMPT
+        system: SYSTEM_PROMPT,
+        stopWhen: stepCountIs(10),
       });
 
       this.conversationService.addAssistantMessage(sessionId, result.text);
