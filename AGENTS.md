@@ -33,3 +33,7 @@ pnpm run dev        # Start WebSocket server
 - **Frontend**: Ink, React, TypeScript
 - **Backend**: Hono, WebSockets, TypeScript
 - **Tooling**: PNPM workspace, ESLint (antfu)
+
+## Best Practices
+
+- **Avoid `any` types**: Use proper TypeScript typing instead of `any`. Create specific interfaces or use union types when needed.

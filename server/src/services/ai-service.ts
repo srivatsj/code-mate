@@ -29,12 +29,11 @@ export class AIService {
   async processToolResult(
     sessionId: string,
     toolResult: ToolResultPayload,
-    sendToClient: (message: WSMessage) => void
+    _sendToClient: (message: WSMessage) => void
   ): Promise<void> {
     logger.info('Processing tool result for session %s', sessionId);
     logger.info('Tool result: %o', toolResult);
     this.conversationService.addToolResult(sessionId, toolResult);
-    await this.runGeneration(sessionId, sendToClient);
   }
 
   private async runGeneration(

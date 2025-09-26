@@ -23,10 +23,12 @@ export class ConversationService {
 
   addToolResult(sessionId: string, result: any): void { // eslint-disable-line @typescript-eslint/no-explicit-any
     this.ensureSession(sessionId);
-    const content = result.error ? `Error: ${result.error}` : `Result: ${JSON.stringify(result.result)}`;
+    const content = result.error
+      ? `Tool execution failed: ${result.error}`
+      : `Tool executed successfully. Result: ${JSON.stringify(result.result)}`;
     this.conversations.get(sessionId)!.push({
-      role: 'assistant',
-      content: `[Tool Result] ${content}`,
+      role: 'user',
+      content: `[Tool completed] ${content}`,
       timestamp: Date.now()
     });
   }

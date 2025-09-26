@@ -59,8 +59,9 @@ export class WebSocketClient {
       logger.info('Tool execution successful for %s', message.payload.name);
       this.sendToolResult({ result });
     } catch (error) {
-      logger.info('Tool execution failed for %s: %s', message.payload.name, error instanceof Error ? error.message : String(error));
-      this.sendToolResult({ error: error instanceof Error ? error.message : String(error) });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      logger.info('Tool execution failed for %s: %s', message.payload.name, errorMessage);
+      this.sendToolResult({ error: errorMessage });
     }
   }
 

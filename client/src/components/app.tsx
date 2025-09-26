@@ -36,9 +36,12 @@ const App = () => {
     };
 
     client.onToolCall = (message: ToolCallMessage) => {
+      const argsStr = Object.keys(message.payload.args).length > 0
+        ? JSON.stringify(message.payload.args)
+        : '';
       setMessages(prev => [...prev, {
         type: 'tool',
-        content: `${message.payload.name}(${JSON.stringify(message.payload.args)})`,
+        content: `${message.payload.name}(${argsStr})`,
         toolName: message.payload.name,
         timestamp: Date.now()
       }]);
