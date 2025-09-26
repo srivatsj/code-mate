@@ -2,10 +2,10 @@ import { LLMResponseMessage, ToolCallMessage } from '@shared/websocket-types';
 import { Box, Text } from 'ink';
 import { useEffect, useState } from 'react';
 
-import { WebSocketClient } from '../websocket-client';
-import { ChatInput } from './chat-input';
-import { Message } from './message-item';
-import { MessageList } from './message-list';
+import { WebSocketClient } from '../../websocket-client';
+import { ChatInput } from '../chat/chat-input';
+import { Message } from '../chat/message/message-types';
+import { MessageList } from '../chat/message-list';
 
 const App = () => {
   const [client] = useState(() => new WebSocketClient('ws://localhost:3001'));

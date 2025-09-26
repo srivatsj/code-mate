@@ -65,17 +65,6 @@ export class WebSocketClient {
     }
   }
 
-  public sendUserInput(content: string): void {
-    logger.info('Sending user input: %s', content);
-    const message: UserInputMessage = {
-      id: crypto.randomUUID(),
-      type: 'user_input',
-      payload: { content },
-      timestamp: Date.now()
-    };
-    this.send(message);
-  }
-
   private sendToolResult(payload: { result?: any; error?: string }): void { // eslint-disable-line @typescript-eslint/no-explicit-any
     const message: ToolResultMessage = {
       id: crypto.randomUUID(),
@@ -88,6 +77,17 @@ export class WebSocketClient {
 
   private send(message: WSMessage): void {
     this.ws.send(JSON.stringify(message));
+  }
+
+  public sendUserInput(content: string): void {
+    logger.info('Sending user input: %s', content);
+    const message: UserInputMessage = {
+      id: crypto.randomUUID(),
+      type: 'user_input',
+      payload: { content },
+      timestamp: Date.now()
+    };
+    this.send(message);
   }
 
   // Type-safe callbacks

@@ -1,5 +1,6 @@
-import { LoadingIndicator } from './loading-indicator';
-import { Message, MessageItem } from './message-item';
+import { LoadingIndicator } from '../ui/loading-indicator';
+import { MessageItem } from './message/message-item';
+import { Message } from './message/message-types';
 
 interface MessageListProps {
   messages: Message[];

@@ -43,7 +43,7 @@ export class ServerTools {
     return this.plans.get(sessionId) || { tasks: [], status: 'pending' };
   }
 
-  updateTask(sessionId: string, taskId: string, status: 'pending' | 'in_progress' | 'completed') {
+  private updateTask(sessionId: string, taskId: string, status: 'pending' | 'in_progress' | 'completed') {
     const plan = this.getPlan(sessionId);
     const task = plan.tasks.find(t => t.id === taskId);
     if (task) {
