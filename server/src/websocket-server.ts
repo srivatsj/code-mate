@@ -1,12 +1,14 @@
 import { ErrorMessage, ToolResultMessage, UserInputMessage, WSMessage } from '@shared/websocket-types';
-import { WebSocket,WebSocketServer } from 'ws';
+import { WebSocket, WebSocketServer } from 'ws';
 
 import logger from './common/logger';
 import { AIService } from './services/ai-service';
+import { ToolCoordinator } from './tools/tool-coordinator';
 
 export class WebSocketServerHandler {
   private wss: WebSocketServer;
-  private aiService = new AIService();
+  private toolCoordinator = new ToolCoordinator();
+  private aiService = new AIService(this.toolCoordinator);
   private sessions = new Map<string, WebSocket>();
 
   constructor(wss: WebSocketServer) {

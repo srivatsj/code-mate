@@ -1,5 +1,6 @@
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 import { ServerTools } from '@server/tools/server-tools';
+import { ToolCoordinator } from '@server/tools/tool-coordinator';
 import { ErrorMessage,LLMResponseMessage, ToolResultPayload, WSMessage } from '@shared/websocket-types';
 import { generateText, stepCountIs } from 'ai';
 
@@ -14,6 +15,8 @@ export class AIService {
   private googleAI = createGoogleGenerativeAI({
     apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY
   });
+
+  constructor(private toolCoordinator: ToolCoordinator) {}
 
   async processUserInput(
     sessionId: string,
@@ -33,7 +36,15 @@ export class AIService {
   ): Promise<void> {
     logger.info('Processing tool result for session %s', sessionId);
     logger.info('Tool result: %o', toolResult);
-    this.conversationService.addToolResult(sessionId, toolResult);
+
+    // Try to resolve a pending promise first
+    if (this.toolCoordinator.resolve(toolResult.toolId, toolResult)) {
+      // Promise was resolved - tool execution continues within AI SDK
+      logger.info('Resolved pending promise for toolId: %s', toolResult.toolId);
+    } else {
+      // No pending promise - this is an unexpected tool result
+      logger.warn('No pending promise found for toolId: %s', toolResult.toolId);
+    }
   }
 
   private async runGeneration(
@@ -42,7 +53,7 @@ export class AIService {
   ): Promise<void> {
     try {
       const history = this.conversationService.getHistory(sessionId);
-      const clientTools = new ClientTools(sendToClient, sessionId);
+      const clientTools = new ClientTools(sendToClient, sessionId, this.toolCoordinator);
       
       const allTools = {
         ...clientTools.getClientToolProxies(),

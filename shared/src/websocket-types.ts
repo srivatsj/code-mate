@@ -13,11 +13,13 @@ export interface WSMessage<T = unknown> {
   export interface ToolCallPayload {
     name: string;
     args: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+    toolId: string;
   }
-  
+
   export interface ToolResultPayload {
     result?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     error?: string;
+    toolId: string;
   }
   
   export interface LLMResponsePayload {

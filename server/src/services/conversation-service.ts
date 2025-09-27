@@ -1,11 +1,25 @@
+import fs from 'fs/promises';
+
 import { ConversationMessage } from '../common/types';
 
 export class ConversationService {
   private conversations = new Map<string, ConversationMessage[]>();
 
-  addUserMessage(sessionId: string, content: string): void {
+  private async addMessage(sessionId: string, message: ConversationMessage): Promise<void> {
     this.ensureSession(sessionId);
-    this.conversations.get(sessionId)!.push({
+    this.conversations.get(sessionId)!.push(message);
+
+    try {
+      const messages = this.conversations.get(sessionId) || [];
+      await fs.mkdir('/tmp/codemate/logs', { recursive: true });
+      await fs.writeFile(`/tmp/codemate/logs/conversation_${sessionId}.json`, JSON.stringify(messages, null, 2));
+    } catch (error) {
+      console.error('Failed to write conversation file:', error);
+    }
+  }
+
+  addUserMessage(sessionId: string, content: string): void {
+    this.addMessage(sessionId, {
       role: 'user',
       content,
       timestamp: Date.now()
@@ -13,20 +27,18 @@ export class ConversationService {
   }
 
   addAssistantMessage(sessionId: string, content: string): void {
-    this.ensureSession(sessionId);
-    this.conversations.get(sessionId)!.push({
-      role: 'assistant', 
+    this.addMessage(sessionId, {
+      role: 'assistant',
       content,
       timestamp: Date.now()
     });
   }
 
   addToolResult(sessionId: string, result: any): void { // eslint-disable-line @typescript-eslint/no-explicit-any
-    this.ensureSession(sessionId);
     const content = result.error
       ? `Tool execution failed: ${result.error}`
       : `Tool executed successfully. Result: ${JSON.stringify(result.result)}`;
-    this.conversations.get(sessionId)!.push({
+    this.addMessage(sessionId, {
       role: 'user',
       content: `[Tool completed] ${content}`,
       timestamp: Date.now()

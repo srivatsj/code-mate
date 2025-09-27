@@ -1,11 +1,14 @@
-import { ToolCallMessage,WSMessage } from '@shared/websocket-types';
+import { ToolCallMessage, WSMessage } from '@shared/websocket-types';
 import { tool } from 'ai';
 import { z } from 'zod';
+
+import { ToolCoordinator } from './tool-coordinator';
 
 export class ClientTools {
   constructor(
     private sendToClient: (message: WSMessage) => void,
-    private sessionId: string
+    private sessionId: string,
+    private toolCoordinator: ToolCoordinator
   ) {}
 
   getClientToolProxies() {
@@ -14,8 +17,9 @@ export class ClientTools {
         description: 'Read file contents',
         inputSchema: z.object({ path: z.string() }),
         execute: async ({ path }: { path: string }) => {
-          this.sendToolCall('read_file', { path });
-          return { pending: true };
+          const toolId = crypto.randomUUID();
+          this.sendToolCall('read_file', { path }, toolId);
+          return this.toolCoordinator.createPending(toolId);
         }
       }),
 
@@ -26,8 +30,9 @@ export class ClientTools {
           content: z.string()
         }),
         execute: async ({ path, content }: { path: string; content: string }) => {
-          this.sendToolCall('write_file', { path, content });
-          return { pending: true };
+          const toolId = crypto.randomUUID();
+          this.sendToolCall('write_file', { path, content }, toolId);
+          return this.toolCoordinator.createPending(toolId);
         }
       }),
 
@@ -38,18 +43,19 @@ export class ClientTools {
           cwd: z.string().optional()
         }),
         execute: async ({ command, cwd }: { command: string; cwd?: string }) => {
-          this.sendToolCall('bash', { command, cwd });
-          return { pending: true };
+          const toolId = crypto.randomUUID();
+          this.sendToolCall('bash', { command, cwd }, toolId);
+          return this.toolCoordinator.createPending(toolId);
         }
       })
     };
   }
 
-  private sendToolCall(name: string, args: Record<string, any>): void { // eslint-disable-line @typescript-eslint/no-explicit-any
+  private sendToolCall(name: string, args: Record<string, any>, toolId: string): void { // eslint-disable-line @typescript-eslint/no-explicit-any
     const message: ToolCallMessage = {
       id: crypto.randomUUID(),
       type: 'tool_call',
-      payload: { name, args },
+      payload: { name, args, toolId },
       timestamp: Date.now()
     };
     this.sendToClient(message);

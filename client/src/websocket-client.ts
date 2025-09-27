@@ -57,15 +57,15 @@ export class WebSocketClient {
         message.payload.args
       );
       logger.info('Tool execution successful for %s', message.payload.name);
-      this.sendToolResult({ result });
+      this.sendToolResult({ result, toolId: message.payload.toolId });
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
       logger.info('Tool execution failed for %s: %s', message.payload.name, errorMessage);
-      this.sendToolResult({ error: errorMessage });
+      this.sendToolResult({ error: errorMessage, toolId: message.payload.toolId });
     }
   }
 
-  private sendToolResult(payload: { result?: any; error?: string }): void { // eslint-disable-line @typescript-eslint/no-explicit-any
+  private sendToolResult(payload: { result?: any; error?: string; toolId: string }): void { // eslint-disable-line @typescript-eslint/no-explicit-any
     const message: ToolResultMessage = {
       id: crypto.randomUUID(),
       type: 'tool_result',
