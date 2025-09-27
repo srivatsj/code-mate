@@ -7,7 +7,6 @@ import { ToolCoordinator } from './tool-coordinator';
 export class ClientTools {
   constructor(
     private sendToClient: (message: WSMessage) => void,
-    private sessionId: string,
     private toolCoordinator: ToolCoordinator
   ) {}
 
@@ -19,7 +18,8 @@ export class ClientTools {
         execute: async ({ path }: { path: string }) => {
           const toolId = crypto.randomUUID();
           this.sendToolCall('read_file', { path }, toolId);
-          return this.toolCoordinator.createPending(toolId);
+          const result = await this.toolCoordinator.createPending(toolId);
+          return result;
         }
       }),
 
@@ -32,7 +32,8 @@ export class ClientTools {
         execute: async ({ path, content }: { path: string; content: string }) => {
           const toolId = crypto.randomUUID();
           this.sendToolCall('write_file', { path, content }, toolId);
-          return this.toolCoordinator.createPending(toolId);
+          const result = await this.toolCoordinator.createPending(toolId);
+          return result;
         }
       }),
 
@@ -45,7 +46,8 @@ export class ClientTools {
         execute: async ({ command, cwd }: { command: string; cwd?: string }) => {
           const toolId = crypto.randomUUID();
           this.sendToolCall('bash', { command, cwd }, toolId);
-          return this.toolCoordinator.createPending(toolId);
+          const result = await this.toolCoordinator.createPending(toolId);
+          return result;
         }
       })
     };

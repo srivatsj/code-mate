@@ -1,6 +1,7 @@
 import { tool } from 'ai';
 import { z } from 'zod';
 
+
 interface TodoTask {
   id: string;
   description: string;
@@ -66,7 +67,8 @@ export class ServerTools {
           description: z.string().optional()
         }),
         execute: async ({ sessionId, tasks, description }: { sessionId: string; tasks: string[]; description?: string }) => {
-          return this.createPlan(sessionId, tasks, description);
+          const result = this.createPlan(sessionId, tasks, description);
+          return result;
         }
       }),
 
@@ -76,7 +78,8 @@ export class ServerTools {
           sessionId: z.string()
         }),
         execute: async ({ sessionId }: { sessionId: string }) => {
-          return this.updatePlanStatus(sessionId);
+          const result = this.updatePlanStatus(sessionId);
+          return result;
         }
       }),
 
@@ -86,7 +89,8 @@ export class ServerTools {
           sessionId: z.string()
         }),
         execute: async ({ sessionId }: { sessionId: string }) => {
-          return this.getPlan(sessionId);
+          const result = this.getPlan(sessionId);
+          return result;
         }
       }),
       
@@ -98,7 +102,8 @@ export class ServerTools {
           status: z.enum(['pending', 'in_progress', 'completed'])
         }),
         execute: async ({ sessionId, taskId, status }: { sessionId: string; taskId: string; status: 'pending' | 'in_progress' | 'completed' }) => {
-          return this.updateTask(sessionId, taskId, status);
+          const result = this.updateTask(sessionId, taskId, status);
+          return result;
         }
       }),
     };

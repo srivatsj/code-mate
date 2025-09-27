@@ -23,8 +23,6 @@ export class AIService {
     userInput: string,
     sendToClient: (message: WSMessage) => void
   ): Promise<void> {
-    logger.info('Processing user input for session %s', sessionId);
-    logger.info('User input: %s', userInput);
     this.conversationService.addUserMessage(sessionId, userInput);
     await this.runGeneration(sessionId, sendToClient);
   }
@@ -34,16 +32,12 @@ export class AIService {
     toolResult: ToolResultPayload,
     _sendToClient: (message: WSMessage) => void
   ): Promise<void> {
-    logger.info('Processing tool result for session %s', sessionId);
-    logger.info('Tool result: %o', toolResult);
 
     // Try to resolve a pending promise first
     if (this.toolCoordinator.resolve(toolResult.toolId, toolResult)) {
       // Promise was resolved - tool execution continues within AI SDK
-      logger.info('Resolved pending promise for toolId: %s', toolResult.toolId);
     } else {
       // No pending promise - this is an unexpected tool result
-      logger.warn('No pending promise found for toolId: %s', toolResult.toolId);
     }
   }
 
@@ -53,20 +47,23 @@ export class AIService {
   ): Promise<void> {
     try {
       const history = this.conversationService.getHistory(sessionId);
-      const clientTools = new ClientTools(sendToClient, sessionId, this.toolCoordinator);
-      
+
+      const clientTools = new ClientTools(sendToClient, this.toolCoordinator);
+
       const allTools = {
         ...clientTools.getClientToolProxies(),
         ...this.serverTools.getTools()
       };
+
 
       const result = await generateText({
         model: this.googleAI('gemini-2.5-flash'),
         messages: history,
         tools: allTools,
         system: SYSTEM_PROMPT,
-        stopWhen: stepCountIs(10),
+        stopWhen: stepCountIs(100),
       });
+
 
       this.conversationService.addAssistantMessage(sessionId, result.text);
 
