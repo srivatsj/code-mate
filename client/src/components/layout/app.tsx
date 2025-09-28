@@ -1,4 +1,4 @@
-import { LLMResponseMessage, ToolCallMessage } from '@shared/websocket-types';
+import { LLMResponseMessage, Plan, PlanDataMessage, ToolCallMessage } from '@shared/websocket-types';
 import { Box, Text } from 'ink';
 import { useEffect, useState } from 'react';
 
@@ -6,12 +6,14 @@ import { WebSocketClient } from '../../websocket-client';
 import { ChatInput } from '../chat/chat-input';
 import { Message } from '../chat/message/message-types';
 import { MessageList } from '../chat/message-list';
+import { PlanDisplay } from '../plan/plan-display';
 
 const App = () => {
   const [client] = useState(() => new WebSocketClient('ws://localhost:3001'));
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [currentPlan, setCurrentPlan] = useState<Plan | null>(null);
 
   useEffect(() => {
     client.onLLMResponse = (message: LLMResponseMessage) => {
@@ -46,6 +48,10 @@ const App = () => {
         timestamp: Date.now()
       }]);
     };
+
+    client.onPlanData = (message: PlanDataMessage) => {
+      setCurrentPlan(message.payload.plan);
+    };
   }, [client]);
 
   const handleSubmit = () => {
@@ -65,6 +71,7 @@ const App = () => {
   return (
     <Box flexDirection="column">
       <Text color="blue">🤖 CodeMate</Text>
+      <PlanDisplay plan={currentPlan} />
       <MessageList messages={messages} isLoading={isLoading} />
       <ChatInput input={input} onInputChange={setInput} onSubmit={handleSubmit} />
     </Box>

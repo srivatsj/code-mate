@@ -1,4 +1,4 @@
-import { ErrorMessage,LLMResponseMessage,ToolCallMessage, ToolResultMessage, UserInputMessage, WSMessage } from '@shared/websocket-types';
+import { ErrorMessage,LLMResponseMessage,PlanDataMessage,ToolCallMessage, ToolResultMessage, UserInputMessage, WSMessage } from '@shared/websocket-types';
 import WebSocket from 'ws';
 
 import logger from './common/logger';
@@ -30,6 +30,10 @@ export class WebSocketClient {
         case 'error':
           logger.info('Error message received: %s', (message as ErrorMessage).payload.message);
           this.onError?.((message as ErrorMessage).payload.message);
+          break;
+        case 'plan_data':
+          logger.info('Plan data received');
+          this.onPlanData?.(message as PlanDataMessage);
           break;
       }
     });
@@ -94,4 +98,5 @@ export class WebSocketClient {
   onLLMResponse?: (message: LLMResponseMessage) => void;
   onError?: (error: string) => void;
   onToolCall?: (message: ToolCallMessage) => void;
+  onPlanData?: (message: PlanDataMessage) => void;
 }

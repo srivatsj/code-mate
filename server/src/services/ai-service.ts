@@ -11,7 +11,6 @@ import { SYSTEM_PROMPT } from './prompts';
 
 export class AIService {
   private conversationService = new ConversationService();
-  private serverTools = new ServerTools();
   private googleAI = createGoogleGenerativeAI({
     apiKey: process.env.GOOGLE_GENERATIVE_AI_API_KEY
   });
@@ -49,10 +48,11 @@ export class AIService {
       const history = this.conversationService.getHistory(sessionId);
 
       const clientTools = new ClientTools(sendToClient, this.toolCoordinator);
+      const serverTools = new ServerTools(sendToClient);
 
       const allTools = {
         ...clientTools.getClientToolProxies(),
-        ...this.serverTools.getTools()
+        ...serverTools.getTools()
       };
 
 

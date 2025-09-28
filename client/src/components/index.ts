@@ -3,5 +3,6 @@ export { MessageItem } from './chat/message/message-item';
 export type { Message } from './chat/message/message-types';
 export { MessageList } from './chat/message-list';
 export { default as App } from './layout/app';
+export { PlanDisplay } from './plan/plan-display';
 export { LoadingIndicator } from './ui/loading-indicator';
 export { default as Welcome } from './ui/welcome-message';

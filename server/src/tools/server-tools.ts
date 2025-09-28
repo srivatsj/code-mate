@@ -1,21 +1,24 @@
+import { Plan, PlanDataMessage, PlanStatus,TaskStatus, TodoTask, WSMessage } from '@shared/websocket-types';
 import { tool } from 'ai';
 import { z } from 'zod';
 
-
-interface TodoTask {
-  id: string;
-  description: string;
-  status: 'pending' | 'in_progress' | 'completed';
-}
-
-interface Plan {
-  description?: string;
-  tasks: TodoTask[];
-  status: 'pending' | 'in_progress' | 'completed';
-}
-
 export class ServerTools {
   private plans = new Map<string, Plan>();
+
+  constructor(private sendToClient?: (message: WSMessage) => void) {}
+
+  private sendPlanData(sessionId: string) {
+    if (this.sendToClient) {
+      const plan = this.getPlan(sessionId);
+      const message: PlanDataMessage = {
+        id: crypto.randomUUID(),
+        type: 'plan_data',
+        payload: { sessionId, plan },
+        timestamp: Date.now()
+      };
+      this.sendToClient(message);
+    }
+  }
 
   private createPlan(sessionId: string, tasks: string[], description?: string) {
     const plan: Plan = {
@@ -23,36 +26,36 @@ export class ServerTools {
       tasks: tasks.map((desc: string) => ({
         id: crypto.randomUUID(),
         description: desc,
-        status: 'pending'
+        status: TaskStatus.PENDING
       })),
-      status: 'pending'
+      status: PlanStatus.PENDING
     };
     this.plans.set(sessionId, plan);
+    this.sendPlanData(sessionId);
     return { success: true, total_tasks: plan.tasks.length };
   }
 
   private updatePlanStatus(sessionId: string) {
     const plan = this.plans.get(sessionId);
     if (plan) {
-      plan.status = plan.tasks.every(t => t.status === 'completed') ? 'completed' : 'in_progress';
+      plan.status = plan.tasks.every((t: TodoTask) => t.status === TaskStatus.COMPLETED) ? PlanStatus.COMPLETED : PlanStatus.IN_PROGRESS;
+      this.sendPlanData(sessionId);
       return { success: true, status: plan.status };
     }
     return { success: false };
   }
 
   private getPlan(sessionId: string): Plan {
-    return this.plans.get(sessionId) || { tasks: [], status: 'pending' };
+    return this.plans.get(sessionId) || { tasks: [], status: PlanStatus.PENDING };
   }
 
-  private updateTask(sessionId: string, taskId: string, status: 'pending' | 'in_progress' | 'completed') {
+  private updateTask(sessionId: string, taskId: string, status: TaskStatus) {
     const plan = this.getPlan(sessionId);
-    const task = plan.tasks.find(t => t.id === taskId);
+    const task = plan.tasks.find((t: TodoTask) => t.id === taskId);
     if (task) {
       task.status = status;
-      const plan = this.plans.get(sessionId);
-      if (plan) {
-        plan.status = plan.tasks.every(t => t.status === 'completed') ? 'completed' : 'in_progress';
-      }
+      plan.status = plan.tasks.every((t: TodoTask) => t.status === TaskStatus.COMPLETED) ? PlanStatus.COMPLETED : PlanStatus.IN_PROGRESS;
+      this.sendPlanData(sessionId);
     }
     return { success: !!task };
   }
@@ -99,9 +102,9 @@ export class ServerTools {
         inputSchema: z.object({
           sessionId: z.string(),
           taskId: z.string(),
-          status: z.enum(['pending', 'in_progress', 'completed'])
+          status: z.enum([TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED])
         }),
-        execute: async ({ sessionId, taskId, status }: { sessionId: string; taskId: string; status: 'pending' | 'in_progress' | 'completed' }) => {
+        execute: async ({ sessionId, taskId, status }: { sessionId: string; taskId: string; status: TaskStatus }) => {
           const result = this.updateTask(sessionId, taskId, status);
           return result;
         }
