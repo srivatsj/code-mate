@@ -2,6 +2,7 @@ import { LLMResponseMessage, Plan, PlanDataMessage, ToolCallMessage } from '@sha
 import { Box, Text } from 'ink';
 import { useEffect, useState } from 'react';
 
+import logger from '../../common/logger';
 import { WebSocketClient } from '../../websocket-client';
 import { ChatInput } from '../chat/chat-input';
 import { Message } from '../chat/message/message-types';
@@ -50,7 +51,11 @@ const App = () => {
     };
 
     client.onPlanData = (message: PlanDataMessage) => {
+      logger.info('[App] Plan data callback triggered for session %s', message.payload.sessionId);
+      logger.info('[App] Setting current plan with %d tasks, status %s',
+        message.payload.plan.tasks.length, message.payload.plan.status);
       setCurrentPlan(message.payload.plan);
+      logger.info('[App] Current plan state updated');
     };
   }, [client]);
 

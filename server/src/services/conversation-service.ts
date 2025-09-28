@@ -11,8 +11,9 @@ export class ConversationService {
 
     try {
       const messages = this.conversations.get(sessionId) || [];
-      await fs.mkdir('/tmp/codemate/logs', { recursive: true });
-      await fs.writeFile(`/tmp/codemate/logs/conversation_${sessionId}.json`, JSON.stringify(messages, null, 2));
+      const folderPath = '/tmp/codemate/server';
+      await fs.mkdir(folderPath, { recursive: true });
+      await fs.writeFile(`${folderPath}/conversation_${sessionId}.json`, JSON.stringify(messages, null, 2));
     } catch (error) {
       console.error('Failed to write conversation file:', error);
     }

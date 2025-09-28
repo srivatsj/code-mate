@@ -8,13 +8,13 @@ interface PlanDisplayProps {
 const TaskIcon = ({ status }: { status: TaskStatus }) => {
   switch (status) {
     case TaskStatus.PENDING:
-      return <Text color="gray">⭘</Text>;
+      return <Text color="gray">○</Text>;
     case TaskStatus.IN_PROGRESS:
-      return <Text color="yellow">⭖</Text>;
+      return <Text color="yellow">●</Text>;
     case TaskStatus.COMPLETED:
       return <Text color="green">✓</Text>;
     default:
-      return <Text color="gray">⭘</Text>;
+      return <Text color="gray">○</Text>;
   }
 };
 

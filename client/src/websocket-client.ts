@@ -32,8 +32,16 @@ export class WebSocketClient {
           this.onError?.((message as ErrorMessage).payload.message);
           break;
         case 'plan_data':
-          logger.info('Plan data received');
-          this.onPlanData?.(message as PlanDataMessage);
+          const planMessage = message as PlanDataMessage;
+          logger.info('Plan data received for session %s: %d tasks, status %s',
+            planMessage.payload.sessionId,
+            planMessage.payload.plan.tasks.length,
+            planMessage.payload.plan.status);
+          planMessage.payload.plan.tasks.forEach((task, index) => {
+            logger.info('Task %d: %s [%s]', index + 1, task.description, task.status);
+          });
+          this.onPlanData?.(planMessage);
+          logger.info('Plan data callback executed');
           break;
       }
     });

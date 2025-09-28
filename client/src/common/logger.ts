@@ -3,15 +3,14 @@ import pino from 'pino';
 const isDebug = process.argv.includes('--debug');
 
 export const logger = pino({
-  level: isDebug ? 'debug' : 'silent',
-  transport: isDebug ? {
-    target: 'pino-pretty',
+  level: isDebug ? 'debug' : 'info',
+  transport: {
+    target: 'pino/file',
     options: {
-      colorize: true,
-      ignore: 'pid,hostname',
-      translateTime: 'HH:MM:ss',
+      destination: '/tmp/codemate/client/client.log',
+      mkdir: true,
     },
-  } : undefined,
+  },
 });
 
 export default logger;

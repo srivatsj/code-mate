@@ -55,6 +55,10 @@ export class AIService {
         ...serverTools.getTools()
       };
 
+      logger.info('Available tools for session %s: %s', sessionId, Object.keys(allTools).join(', '));
+
+
+      logger.info('Starting text generation for session %s with %d messages', sessionId, history.length);
 
       const result = await generateText({
         model: this.googleAI('gemini-2.5-flash'),
@@ -63,6 +67,16 @@ export class AIService {
         system: SYSTEM_PROMPT,
         stopWhen: stepCountIs(100),
       });
+
+      logger.info('Generation completed for session %s. Tool calls: %d, Text length: %d',
+        sessionId, result.toolCalls?.length || 0, result.text.length);
+
+      if (result.toolCalls && result.toolCalls.length > 0) {
+        result.toolCalls.forEach((toolCall, index) => {
+          logger.info('Tool call %d for session %s: %s',
+            index + 1, sessionId, toolCall.toolName);
+        });
+      }
 
 
       this.conversationService.addAssistantMessage(sessionId, result.text);
