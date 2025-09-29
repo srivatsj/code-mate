@@ -1,3 +1,5 @@
+import { z } from 'zod';
+
 // shared/types.ts
 export interface WSMessage<T = unknown> {
     id: string;
@@ -10,9 +12,33 @@ export interface WSMessage<T = unknown> {
     content: string;
   }
   
+
+  // Zod schemas for tool validation (single source of truth)
+  export const WriteFileSchema = z.object({
+    path: z.string(),
+    content: z.string()
+  });
+
+  export const ReadFileSchema = z.object({
+    path: z.string()
+  });
+
+  export const BashSchema = z.object({
+    command: z.string(),
+    description: z.string().optional()
+  });
+
+  // TypeScript types derived from Zod schemas
+  export type WriteFileArgs = z.infer<typeof WriteFileSchema>;
+  export type ReadFileArgs = z.infer<typeof ReadFileSchema>;
+  export type BashArgs = z.infer<typeof BashSchema>;
+
+  // Union type for all tool arguments
+  export type ToolArgs = WriteFileArgs | ReadFileArgs | BashArgs | Record<string, unknown>;
+
   export interface ToolCallPayload {
     name: string;
-    args: Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+    args: ToolArgs;
     toolId: string;
   }
 

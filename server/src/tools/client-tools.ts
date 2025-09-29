@@ -1,4 +1,4 @@
-import { ToolCallMessage, WSMessage } from '@shared/websocket-types';
+import { BashSchema, ReadFileSchema, ToolArgs, ToolCallMessage, WriteFileSchema, WSMessage } from '@shared/websocket-types';
 import { tool } from 'ai';
 import { z } from 'zod';
 
@@ -14,7 +14,7 @@ export class ClientTools {
     return {
       read_file: tool({
         description: 'Read file contents',
-        inputSchema: z.object({ path: z.string() }),
+        inputSchema: ReadFileSchema,
         execute: async ({ path }: { path: string }) => {
           const toolId = crypto.randomUUID();
           this.sendToolCall('read_file', { path }, toolId);
@@ -25,10 +25,7 @@ export class ClientTools {
 
       write_file: tool({
         description: 'Write file contents',
-        inputSchema: z.object({
-          path: z.string(),
-          content: z.string()
-        }),
+        inputSchema: WriteFileSchema,
         execute: async ({ path, content }: { path: string; content: string }) => {
           const toolId = crypto.randomUUID();
           this.sendToolCall('write_file', { path, content }, toolId);
@@ -39,8 +36,7 @@ export class ClientTools {
 
       bash: tool({
         description: 'Execute bash command',
-        inputSchema: z.object({
-          command: z.string(),
+        inputSchema: BashSchema.extend({
           cwd: z.string().optional()
         }),
         execute: async ({ command, cwd }: { command: string; cwd?: string }) => {
@@ -53,7 +49,7 @@ export class ClientTools {
     };
   }
 
-  private sendToolCall(name: string, args: Record<string, any>, toolId: string): void { // eslint-disable-line @typescript-eslint/no-explicit-any
+  private sendToolCall(name: string, args: ToolArgs, toolId: string): void {
     const message: ToolCallMessage = {
       id: crypto.randomUUID(),
       type: 'tool_call',

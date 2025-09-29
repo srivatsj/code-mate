@@ -9,5 +9,8 @@
   "devDependencies": {
     "eslint": "^9.36.0",
     "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "zod": "^4.1.11"
   }
 }

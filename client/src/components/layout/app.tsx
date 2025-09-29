@@ -38,13 +38,11 @@ const App = () => {
     };
 
     client.onToolCall = (message: ToolCallMessage) => {
-      const argsStr = Object.keys(message.payload.args).length > 0
-        ? JSON.stringify(message.payload.args)
-        : '';
       setMessages(prev => [...prev, {
         type: 'tool',
-        content: `${message.payload.name}(${argsStr})`,
+        content: message.payload.name, // Just the tool name for fallback
         toolName: message.payload.name,
+        toolArgs: message.payload.args,
         timestamp: Date.now()
       }]);
     };

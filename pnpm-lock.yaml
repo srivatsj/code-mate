@@ -132,6 +132,10 @@ importers:
         version: 5.9.2
 
   shared:
+    dependencies:
+      zod:
+        specifier: ^4.1.11
+        version: 4.1.11
     devDependencies:
       eslint:
         specifier: ^9.36.0
