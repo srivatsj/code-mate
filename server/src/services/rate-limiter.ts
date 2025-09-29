@@ -66,8 +66,8 @@ export class RateLimiter {
           const retryMatch = errorMessage.match(/Please retry in ([\d.]+)s/);
           const suggestedDelay = retryMatch ? parseFloat(retryMatch[1]) * 1000 : null;
 
-          // Use suggested delay or exponential backoff
-          const delay = suggestedDelay || Math.pow(2, attempt) * 5000; // 5s, 10s, 20s default
+          // Use suggested delay or more aggressive exponential backoff for 10 RPM limit
+          const delay = suggestedDelay || Math.pow(2, attempt) * 15000; // 15s, 30s, 60s for 10 RPM
 
           logger.warn(
             'Quota exceeded (attempt %d/%d) for session %s. Retrying in %d ms',

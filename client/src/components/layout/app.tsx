@@ -7,7 +7,6 @@ import { WebSocketClient } from '../../websocket-client';
 import { ChatInput } from '../chat/chat-input';
 import { Message } from '../chat/message/message-types';
 import { MessageList } from '../chat/message-list';
-import { PlanDisplay } from '../plan/plan-display';
 
 const App = () => {
   const [client] = useState(() => new WebSocketClient('ws://localhost:3001'));
@@ -76,8 +75,7 @@ const App = () => {
   return (
     <Box flexDirection="column">
       <Text color="blue">🤖 CodeMate</Text>
-      <PlanDisplay plan={currentPlan} />
-      <MessageList messages={messages} isLoading={isLoading} />
+      <MessageList messages={messages} isLoading={isLoading} plan={currentPlan} />
       <ChatInput input={input} onInputChange={setInput} onSubmit={handleSubmit} />
     </Box>
   );
