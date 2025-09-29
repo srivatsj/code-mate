@@ -45,6 +45,10 @@ export class AIService {
   ): Promise<void> {
     if (!this.toolCoordinator.resolve(toolResult.toolId, toolResult)) {
       logger.warn('Unexpected tool result for session %s: %s', sessionId, toolResult.toolId);
+    } else {
+      // Add tool result to conversation history
+      this.conversationService.addToolResult(sessionId, toolResult);
+      logger.info('Tool result processed for session %s: %s', sessionId, toolResult.toolId);
     }
   }
 

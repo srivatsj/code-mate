@@ -1,3 +1,4 @@
+import { ToolResultPayload } from '@shared/websocket-types';
 import fs from 'fs/promises';
 
 import { ConversationMessage } from '../common/types';
@@ -35,7 +36,7 @@ export class ConversationService {
     });
   }
 
-  addToolResult(sessionId: string, result: any): void { // eslint-disable-line @typescript-eslint/no-explicit-any
+  addToolResult(sessionId: string, result: ToolResultPayload): void {
     const content = result.error
       ? `Tool execution failed: ${result.error}`
       : `Tool executed successfully. Result: ${JSON.stringify(result.result)}`;

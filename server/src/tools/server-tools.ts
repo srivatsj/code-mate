@@ -44,16 +44,6 @@ export class ServerTools {
     return { success: true, total_tasks: plan.tasks.length };
   }
 
-  private updatePlanStatus(sessionId: string) {
-    const plan = this.plans.get(sessionId);
-    if (plan) {
-      plan.status = plan.tasks.every((t: TodoTask) => t.status === TaskStatus.COMPLETED) ? PlanStatus.COMPLETED : PlanStatus.IN_PROGRESS;
-      this.sendPlanData(sessionId);
-      return { success: true, status: plan.status };
-    }
-    return { success: false };
-  }
-
   private getPlan(sessionId: string): Plan {
     return this.plans.get(sessionId) || { tasks: [], status: PlanStatus.PENDING };
   }
@@ -65,13 +55,30 @@ export class ServerTools {
     if (task) {
       logger.info('[ServerTools] Task found, updating status from %s to %s', task.status, status);
       task.status = status;
-      plan.status = plan.tasks.every((t: TodoTask) => t.status === TaskStatus.COMPLETED) ? PlanStatus.COMPLETED : PlanStatus.IN_PROGRESS;
+
+      // Update plan status based on all tasks
+      const allCompleted = plan.tasks.every((t: TodoTask) => t.status === TaskStatus.COMPLETED);
+      const anyInProgress = plan.tasks.some((t: TodoTask) => t.status === TaskStatus.IN_PROGRESS);
+
+      plan.status = allCompleted ? PlanStatus.COMPLETED :
+                    anyInProgress ? PlanStatus.IN_PROGRESS :
+                    PlanStatus.PENDING;
+
       logger.info('[ServerTools] Plan status updated to %s', plan.status);
+
+      // Send plan data only once after updating both task and plan status
       this.sendPlanData(sessionId);
+
+      return {
+        success: true,
+        taskStatus: status,
+        planStatus: plan.status,
+        message: allCompleted ? 'All tasks completed!' : 'Task updated successfully'
+      };
     } else {
       logger.warn('[ServerTools] Task %s not found in plan for session %s', taskId, sessionId);
     }
-    return { success: !!task };
+    return { success: false, message: 'Task not found' };
   }
 
   getTools() {
@@ -89,16 +96,6 @@ export class ServerTools {
         }
       }),
 
-      update_plan_status: tool({
-        description: 'Update the overall plan status based on current task completion. Call this after tasks are completed to refresh the plan status.',
-        inputSchema: z.object({
-          sessionId: z.string().describe('Session identifier for the plan to update')
-        }),
-        execute: async ({ sessionId }: { sessionId: string }) => {
-          const result = this.updatePlanStatus(sessionId);
-          return result;
-        }
-      }),
 
       get_plan: tool({
         description: 'Retrieve the current plan with all tasks and their IDs. ALWAYS call this before updating tasks to get the correct task IDs.',
@@ -112,11 +109,11 @@ export class ServerTools {
       }),
       
       update_task: tool({
-        description: 'Update a specific task status. Use get_plan first to retrieve task IDs, then use the task.id (UUID) from the plan.',
+        description: 'Update a specific task status. This automatically updates the overall plan status. Use get_plan first to retrieve task IDs, then use the task.id (UUID) from the plan. IMPORTANT: Mark tasks as COMPLETED immediately after finishing them.',
         inputSchema: z.object({
           sessionId: z.string().describe('Session identifier for the plan containing the task'),
           taskId: z.string().describe('The task ID (UUID) from the plan - get this from get_plan first'),
-          status: z.enum([TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED]).describe('New status for the task')
+          status: z.enum([TaskStatus.PENDING, TaskStatus.IN_PROGRESS, TaskStatus.COMPLETED]).describe('New status for the task - mark as COMPLETED immediately after finishing')
         }),
         execute: async ({ sessionId, taskId, status }: { sessionId: string; taskId: string; status: TaskStatus }) => {
           const result = this.updateTask(sessionId, taskId, status);
