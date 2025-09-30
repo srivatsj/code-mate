@@ -76,6 +76,7 @@ export interface WSMessage<T = unknown> {
   }
 
   export interface Plan {
+    id: string; // Unique plan identifier
     description?: string;
     tasks: TodoTask[];
     status: PlanStatus;

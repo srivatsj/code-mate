@@ -1,4 +1,4 @@
-import { LLMResponseMessage, Plan, PlanDataMessage, ToolCallMessage } from '@shared/websocket-types';
+import { LLMResponseMessage, PlanDataMessage, ToolCallMessage } from '@shared/websocket-types';
 import { Box, Text } from 'ink';
 import { useEffect, useState } from 'react';
 
@@ -13,7 +13,6 @@ const App = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [currentPlan, setCurrentPlan] = useState<Plan | null>(null);
 
   useEffect(() => {
     client.onLLMResponse = (message: LLMResponseMessage) => {
@@ -48,11 +47,34 @@ const App = () => {
     };
 
     client.onPlanData = (message: PlanDataMessage) => {
-      logger.info('[App] Plan data callback triggered for session %s', message.payload.sessionId);
-      logger.info('[App] Setting current plan with %d tasks, status %s',
-        message.payload.plan.tasks.length, message.payload.plan.status);
-      setCurrentPlan(message.payload.plan);
-      logger.info('[App] Current plan state updated');
+      const planId = message.payload.plan.id;
+      logger.info('[App] Plan data received for plan %s with %d tasks, status %s',
+        planId, message.payload.plan.tasks.length, message.payload.plan.status);
+
+      // Find existing plan message with this id, or append new one
+      setMessages(prev => {
+        const planIndex = prev.findIndex(m => m.type === 'plan' && m.plan?.id === planId);
+
+        if (planIndex !== -1) {
+          // Update existing plan message
+          const updated = [...prev];
+          updated[planIndex] = {
+            ...updated[planIndex],
+            plan: message.payload.plan
+          };
+          logger.info('[App] Updated existing plan message at index %d', planIndex);
+          return updated;
+        } else {
+          // Append new plan message
+          logger.info('[App] Creating new plan message for plan %s', planId);
+          return [...prev, {
+            type: 'plan',
+            content: '',
+            plan: message.payload.plan,
+            timestamp: Date.now()
+          }];
+        }
+      });
     };
   }, [client]);
 
@@ -73,7 +95,7 @@ const App = () => {
   return (
     <Box flexDirection="column">
       <Text color="blue">🤖 CodeMate</Text>
-      <MessageList messages={messages} isLoading={isLoading} plan={currentPlan} />
+      <MessageList messages={messages} isLoading={isLoading} />
       <ChatInput input={input} onInputChange={setInput} onSubmit={handleSubmit} />
     </Box>
   );

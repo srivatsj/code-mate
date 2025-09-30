@@ -1,5 +1,6 @@
 import { Box, Text } from 'ink';
 
+import { PlanDisplay } from '../../plan/plan-display';
 import { AiMessage } from './message-renderers/ai-message';
 import { ErrorMessage } from './message-renderers/error-message';
 import { ToolMessage } from './message-renderers/tool-message';
@@ -16,6 +17,8 @@ export const MessageItem = ({ message, index }: MessageItemProps) => {
       return <ErrorMessage message={message} index={index} />;
     case 'tool':
       return <ToolMessage message={message} index={index} />;
+    case 'plan':
+      return message.plan ? <PlanDisplay plan={message.plan} /> : null;
     default:
       return (
         <Box key={index} marginBottom={1}>

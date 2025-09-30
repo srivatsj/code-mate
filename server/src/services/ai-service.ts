@@ -62,6 +62,7 @@ export class AIService {
 
       const clientTools = new ClientTools(sendToClient, this.toolCoordinator);
       this.serverTools.setSendToClient(sendToClient); // Update callback for current request
+      this.serverTools.setSessionId(sessionId); // Set session ID for plan tools
       const allTools = {
         ...clientTools.getClientToolProxies(),
         ...this.serverTools.getTools(),
