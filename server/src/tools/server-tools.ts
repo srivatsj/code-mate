@@ -6,8 +6,15 @@ import logger from '../common/logger';
 
 export class ServerTools {
   private plans = new Map<string, Plan>();
+  private sendToClient?: (message: WSMessage) => void;
 
-  constructor(private sendToClient?: (message: WSMessage) => void) {}
+  constructor(sendToClient?: (message: WSMessage) => void) {
+    this.sendToClient = sendToClient;
+  }
+
+  setSendToClient(sendToClient: (message: WSMessage) => void) {
+    this.sendToClient = sendToClient;
+  }
 
   private sendPlanData(sessionId: string) {
     if (this.sendToClient) {

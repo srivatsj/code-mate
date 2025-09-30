@@ -21,6 +21,7 @@ export class AIService {
   });
 
   private rateLimiter = new RateLimiter(10, 1); // 10 RPM, 1 concurrent
+  private serverTools = new ServerTools(); // Persist across retries
 
   constructor(private toolCoordinator: ToolCoordinator) {}
 
@@ -60,10 +61,10 @@ export class AIService {
       const history = this.conversationService.getHistory(sessionId);
 
       const clientTools = new ClientTools(sendToClient, this.toolCoordinator);
-      const serverTools = new ServerTools(sendToClient);
+      this.serverTools.setSendToClient(sendToClient); // Update callback for current request
       const allTools = {
         ...clientTools.getClientToolProxies(),
-        ...serverTools.getTools(),
+        ...this.serverTools.getTools(),
       };
 
       logger.info(
