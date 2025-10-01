@@ -1,7 +1,7 @@
 import { Plan, TaskStatus } from '@shared/websocket-types';
 import { Box, Text } from 'ink';
 
-interface PlanDisplayProps {
+interface PlanMessageProps {
   plan: Plan | null;
 }
 
@@ -18,7 +18,7 @@ const TaskIcon = ({ status }: { status: TaskStatus }) => {
   }
 };
 
-export const PlanDisplay = ({ plan }: PlanDisplayProps) => {
+export const PlanMessage = ({ plan }: PlanMessageProps) => {
   if (!plan || plan.tasks.length === 0) {
     return null;
   }
