@@ -1,4 +1,4 @@
-import { BashArgs,ReadFileArgs, WriteFileArgs } from '@shared/websocket-types';
+import { BashArgs, EditArgs, GlobArgs, GrepArgs, ReadFileArgs, WriteFileArgs } from '@shared/websocket-types';
 import { Box, Text } from 'ink';
 
 import { MessageItemProps } from '../message-types';
@@ -40,6 +40,30 @@ export const ToolMessage = ({ message, index }: MessageItemProps) => {
     </Box>
   );
 
+  const renderEdit = (args: EditArgs) => {
+    const fileName = args.path.split('/').pop() || args.path;
+    return (
+      <Box flexDirection="column">
+        <Text color="blue">Edit({args.path})</Text>
+        <Text color="gray">  ⎿  Modified {fileName}</Text>
+      </Box>
+    );
+  };
+
+  const renderGlob = (args: GlobArgs) => (
+    <Box flexDirection="column">
+      <Text color="blue">Glob({args.pattern})</Text>
+      <Text color="gray">  ⎿  Finding files matching pattern</Text>
+    </Box>
+  );
+
+  const renderGrep = (args: GrepArgs) => (
+    <Box flexDirection="column">
+      <Text color="blue">Grep({args.pattern})</Text>
+      <Text color="gray">  ⎿  Searching for pattern{args.path ? ` in ${args.path}` : ''}</Text>
+    </Box>
+  );
+
   const renderGeneric = () => (
     <Box flexDirection="column">
       <Text color="blue">{toolName}</Text>
@@ -52,7 +76,10 @@ export const ToolMessage = ({ message, index }: MessageItemProps) => {
       {toolName === 'write_file' && renderWriteFile(toolArgs as WriteFileArgs)}
       {toolName === 'read_file' && renderReadFile(toolArgs as ReadFileArgs)}
       {toolName === 'bash' && renderBash(toolArgs as BashArgs)}
-      {!['write_file', 'read_file', 'bash'].includes(toolName) && renderGeneric()}
+      {toolName === 'edit' && renderEdit(toolArgs as EditArgs)}
+      {toolName === 'glob' && renderGlob(toolArgs as GlobArgs)}
+      {toolName === 'grep' && renderGrep(toolArgs as GrepArgs)}
+      {!['write_file', 'read_file', 'bash', 'edit', 'glob', 'grep'].includes(toolName) && renderGeneric()}
     </Box>
   );
 };

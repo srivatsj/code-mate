@@ -28,13 +28,33 @@ export interface WSMessage<T = unknown> {
     description: z.string().optional()
   });
 
+  export const EditSchema = z.object({
+    path: z.string(),
+    old_string: z.string(),
+    new_string: z.string()
+  });
+
+  export const GlobSchema = z.object({
+    pattern: z.string(),
+    cwd: z.string().optional()
+  });
+
+  export const GrepSchema = z.object({
+    pattern: z.string(),
+    path: z.string().optional(),
+    case_insensitive: z.boolean().optional()
+  });
+
   // TypeScript types derived from Zod schemas
   export type WriteFileArgs = z.infer<typeof WriteFileSchema>;
   export type ReadFileArgs = z.infer<typeof ReadFileSchema>;
   export type BashArgs = z.infer<typeof BashSchema>;
+  export type EditArgs = z.infer<typeof EditSchema>;
+  export type GlobArgs = z.infer<typeof GlobSchema>;
+  export type GrepArgs = z.infer<typeof GrepSchema>;
 
   // Union type for all tool arguments
-  export type ToolArgs = WriteFileArgs | ReadFileArgs | BashArgs | Record<string, unknown>;
+  export type ToolArgs = WriteFileArgs | ReadFileArgs | BashArgs | EditArgs | GlobArgs | GrepArgs | Record<string, unknown>;
 
   export interface ToolCallPayload {
     name: string;
