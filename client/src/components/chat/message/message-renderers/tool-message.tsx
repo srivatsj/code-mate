@@ -1,4 +1,4 @@
-import { BashArgs, EditArgs, GlobArgs, GrepArgs, ReadFileArgs, WriteFileArgs } from '@shared/websocket-types';
+import { BashArgs, EditArgs, GlobArgs, GrepArgs, ReadFileArgs, WebFetchArgs, WriteFileArgs } from '@shared/websocket-types';
 import { Box, Text } from 'ink';
 
 import { MessageItemProps } from '../message-types';
@@ -64,6 +64,20 @@ export const ToolMessage = ({ message, index }: MessageItemProps) => {
     </Box>
   );
 
+  const renderWebFetch = (args: WebFetchArgs) => (
+    <Box flexDirection="column">
+      <Text color="blue">WebFetch({args.url})</Text>
+      <Text color="gray">  ⎿  Fetching content from URL</Text>
+    </Box>
+  );
+
+  const renderWebSearch = (args: { query: string }) => (
+    <Box flexDirection="column">
+      <Text color="blue">WebSearch({args.query})</Text>
+      <Text color="gray">  ⎿  Searching the web</Text>
+    </Box>
+  );
+
   const renderGeneric = () => (
     <Box flexDirection="column">
       <Text color="blue">{toolName}</Text>
@@ -79,7 +93,9 @@ export const ToolMessage = ({ message, index }: MessageItemProps) => {
       {toolName === 'edit' && renderEdit(toolArgs as EditArgs)}
       {toolName === 'glob' && renderGlob(toolArgs as GlobArgs)}
       {toolName === 'grep' && renderGrep(toolArgs as GrepArgs)}
-      {!['write_file', 'read_file', 'bash', 'edit', 'glob', 'grep'].includes(toolName) && renderGeneric()}
+      {toolName === 'web_fetch' && renderWebFetch(toolArgs as WebFetchArgs)}
+      {toolName === 'web_search' && renderWebSearch(toolArgs as { query: string })}
+      {!['write_file', 'read_file', 'bash', 'edit', 'glob', 'grep', 'web_fetch', 'web_search'].includes(toolName) && renderGeneric()}
     </Box>
   );
 };

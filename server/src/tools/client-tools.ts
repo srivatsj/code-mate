@@ -1,4 +1,4 @@
-import { BashSchema, EditSchema, GlobSchema, GrepSchema, ReadFileSchema, ToolArgs, ToolCallMessage, WriteFileSchema, WSMessage } from '@shared/websocket-types';
+import { BashSchema, EditSchema, GlobSchema, GrepSchema, ReadFileSchema, ToolArgs, ToolCallMessage, WebFetchSchema, WriteFileSchema, WSMessage } from '@shared/websocket-types';
 import { tool } from 'ai';
 import { z } from 'zod';
 
@@ -75,6 +75,17 @@ export class ClientTools {
         execute: async (args: { pattern: string; path?: string; case_insensitive?: boolean }) => {
           const toolId = crypto.randomUUID();
           this.sendToolCall('grep', args, toolId);
+          const result = await this.toolCoordinator.createPending(toolId);
+          return result;
+        }
+      }),
+
+      web_fetch: tool({
+        description: 'Fetch content from a URL',
+        inputSchema: WebFetchSchema,
+        execute: async ({ url }: { url: string }) => {
+          const toolId = crypto.randomUUID();
+          this.sendToolCall('web_fetch', { url }, toolId);
           const result = await this.toolCoordinator.createPending(toolId);
           return result;
         }

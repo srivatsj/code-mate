@@ -139,6 +139,59 @@ export class ServerTools {
           return result;
         }
       }),
+
+      web_search: tool({
+        description: 'Search the web for current, real-time information. REQUIRED for: latest news, recent events, current prices, up-to-date documentation, or any information after January 2025. Always use this when user asks about "latest", "current", "recent", or "today".',
+        inputSchema: z.object({
+          query: z.string().describe('The search query to find information about'),
+          max_results: z.number().optional().default(5).describe('Maximum number of search results to return (default: 5)')
+        }),
+        execute: async (args: { query: string; max_results?: number }) => {
+          try {
+            const apiKey = process.env.TAVILY_API_KEY;
+            if (!apiKey) {
+              throw new Error('TAVILY_API_KEY environment variable is not set');
+            }
+
+            const response = await fetch('https://api.tavily.com/search', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                api_key: apiKey,
+                query: args.query,
+                max_results: args.max_results || 5,
+                include_answer: true,
+                include_raw_content: false
+              })
+            });
+
+            if (!response.ok) {
+              throw new Error(`Tavily API error: ${response.status} ${response.statusText}`);
+            }
+
+            const data = await response.json();
+            return {
+              success: true,
+              query: args.query,
+              answer: data.answer,
+              results: data.results?.map((r: any) => ({ // eslint-disable-line @typescript-eslint/no-explicit-any
+                title: r.title,
+                url: r.url,
+                content: r.content,
+                score: r.score
+              })) || []
+            };
+          } catch (error) {
+            logger.error('[ServerTools] Web search failed: %s', error instanceof Error ? error.message : String(error));
+            return {
+              success: false,
+              error: error instanceof Error ? error.message : 'Unknown error occurred'
+            };
+          }
+        }
+      })
     };
   }
 }

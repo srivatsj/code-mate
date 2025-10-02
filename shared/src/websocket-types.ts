@@ -45,6 +45,10 @@ export interface WSMessage<T = unknown> {
     case_insensitive: z.boolean().optional()
   });
 
+  export const WebFetchSchema = z.object({
+    url: z.string().url()
+  });
+
   // TypeScript types derived from Zod schemas
   export type WriteFileArgs = z.infer<typeof WriteFileSchema>;
   export type ReadFileArgs = z.infer<typeof ReadFileSchema>;
@@ -52,9 +56,10 @@ export interface WSMessage<T = unknown> {
   export type EditArgs = z.infer<typeof EditSchema>;
   export type GlobArgs = z.infer<typeof GlobSchema>;
   export type GrepArgs = z.infer<typeof GrepSchema>;
+  export type WebFetchArgs = z.infer<typeof WebFetchSchema>;
 
   // Union type for all tool arguments
-  export type ToolArgs = WriteFileArgs | ReadFileArgs | BashArgs | EditArgs | GlobArgs | GrepArgs | Record<string, unknown>;
+  export type ToolArgs = WriteFileArgs | ReadFileArgs | BashArgs | EditArgs | GlobArgs | GrepArgs | WebFetchArgs | Record<string, unknown>;
 
   export interface ToolCallPayload {
     name: string;

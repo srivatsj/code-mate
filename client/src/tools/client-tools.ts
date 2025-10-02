@@ -30,6 +30,8 @@ export class ClientTools {
             return this.globFiles(args.pattern, args.cwd);
         case 'grep':
             return this.grepFiles(args.pattern, args.path, args.case_insensitive);
+        case 'web_fetch':
+            return this.webFetch(args.url);
         default:
             throw new Error(`Unknown tool: ${toolName}`);
         }
@@ -133,6 +135,39 @@ export class ClientTools {
             };
         } catch (error) {
             throw new Error(`Grep failed: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+
+    private async webFetch(url: string): Promise<ToolResult> {
+        try {
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const contentType = response.headers.get('content-type') || '';
+            let content: string;
+
+            if (contentType.includes('application/json')) {
+                const json = await response.json();
+                content = JSON.stringify(json, null, 2);
+            } else {
+                content = await response.text();
+            }
+
+            return {
+                success: true,
+                data: {
+                    url,
+                    status: response.status,
+                    contentType,
+                    content,
+                    size: content.length
+                }
+            };
+        } catch (error) {
+            throw new Error(`Web fetch failed: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
 }

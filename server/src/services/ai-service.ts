@@ -10,6 +10,7 @@ import { generateText, stepCountIs } from 'ai';
 
 import logger from '../common/logger';
 import { ClientTools } from '../tools/client-tools';
+import { AILogging } from './ai-logging';
 import { ConversationService } from './conversation-service';
 import { SYSTEM_PROMPT } from './prompts';
 import { RateLimiter } from './rate-limiter';
@@ -30,6 +31,7 @@ export class AIService {
     userInput: string,
     sendToClient: (message: WSMessage) => void
   ): Promise<void> {
+    AILogging.logUserInput(sessionId, userInput);
     this.conversationService.addUserMessage(sessionId, userInput);
 
     await this.rateLimiter.scheduleWithRetry(
@@ -45,11 +47,9 @@ export class AIService {
     _sendToClient: (message: WSMessage) => void
   ): Promise<void> {
     if (!this.toolCoordinator.resolve(toolResult.toolId, toolResult)) {
-      logger.warn('Unexpected tool result for session %s: %s', sessionId, toolResult.toolId);
+      logger.warn('[AIService] ⚠️  Unexpected tool result for session %s: %s', sessionId, toolResult.toolId);
     } else {
-      // Add tool result to conversation history
       this.conversationService.addToolResult(sessionId, toolResult);
-      logger.info('Tool result processed for session %s: %s', sessionId, toolResult.toolId);
     }
   }
 
@@ -59,49 +59,60 @@ export class AIService {
   ): Promise<void> {
     try {
       const history = this.conversationService.getHistory(sessionId);
-
       const clientTools = new ClientTools(sendToClient, this.toolCoordinator);
-      this.serverTools.setSendToClient(sendToClient); // Update callback for current request
-      this.serverTools.setSessionId(sessionId); // Set session ID for plan tools
+      this.serverTools.setSendToClient(sendToClient);
+      this.serverTools.setSessionId(sessionId);
       const allTools = {
         ...clientTools.getClientToolProxies(),
         ...this.serverTools.getTools(),
       };
 
-      logger.info(
-        'Starting text generation for session %s with %d messages',
-        sessionId,
-        history.length
-      );
-
+      let stepNumber = 0;
       const result = await generateText({
         model: this.googleAI('gemini-2.5-flash'),
         messages: history,
         tools: allTools,
         system: SYSTEM_PROMPT,
-        stopWhen: stepCountIs(25), // Allow complex tasks - bottleneck will handle rate limiting
+        stopWhen: stepCountIs(25),
+        onStepFinish: ({ text, toolCalls, toolResults, finishReason, usage }) => {
+          stepNumber++;
+          AILogging.logStepStart(stepNumber, sessionId);
+          AILogging.logToolCalls(toolCalls as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+          AILogging.logToolResults(toolResults as any); // eslint-disable-line @typescript-eslint/no-explicit-any
+          AILogging.logLLMText(text);
+          AILogging.logStepEnd(finishReason, usage?.totalTokens || 0);
+        }
       });
 
-      logger.info(
-        'Generation completed for session %s. Tool calls: %d, Text length: %d',
-        sessionId,
-        result.toolCalls?.length || 0,
-        result.text.length
-      );
+      AILogging.logFinalResult(result.text);
 
-      this.conversationService.addAssistantMessage(sessionId, result.text);
+      if (result.text && result.text.trim().length > 0) {
+        this.conversationService.addAssistantMessage(sessionId, result.text);
 
-      const response: LLMResponseMessage = {
-        id: crypto.randomUUID(),
-        type: 'llm_response',
-        payload: { content: result.text },
-        timestamp: Date.now(),
-      };
+        const response: LLMResponseMessage = {
+          id: crypto.randomUUID(),
+          type: 'llm_response',
+          payload: { content: result.text },
+          timestamp: Date.now(),
+        };
 
-      sendToClient(response);
+        sendToClient(response);
+        AILogging.logResponseSent();
+      } else {
+        AILogging.logEmptyResponse(result.finishReason);
+
+        // Send error message to client
+        const errorResponse: LLMResponseMessage = {
+          id: crypto.randomUUID(),
+          type: 'llm_response',
+          payload: { content: '⚠️  Empty response from AI. Please try again or rephrase your request.' },
+          timestamp: Date.now(),
+        };
+        sendToClient(errorResponse);
+      }
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : String(error);
-      logger.error('Error during generation for session %s: %s', sessionId, errorMessage);
+      logger.error('[AIService] Error during generation for session %s: %s', sessionId, errorMessage);
 
       const errorResponse: LLMResponseMessage = {
         id: crypto.randomUUID(),
