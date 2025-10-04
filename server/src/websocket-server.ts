@@ -1,4 +1,4 @@
-import { ErrorMessage, ToolResultMessage, UserInputMessage, WSMessage } from '@shared/websocket-types';
+import { CommandMessage, ErrorMessage, LLMResponseMessage, ToolResultMessage, UserInputMessage, WSMessage } from '@shared/websocket-types';
 import { WebSocket, WebSocketServer } from 'ws';
 
 import logger from './common/logger';
@@ -34,6 +34,9 @@ export class WebSocketServerHandler {
             case 'tool_result':
               await this.handleToolResult(ws, sessionId, message as ToolResultMessage);
               break;
+            case 'command':
+              await this.handleCommand(ws, sessionId, message as CommandMessage);
+              break;
             default:
               logger.warn('Unknown message type %s from session %s', message.type, sessionId);
           }
@@ -68,6 +71,32 @@ export class WebSocketServerHandler {
       message.payload,
       (response) => this.sendToClient(ws, response)
     );
+  }
+
+  private async handleCommand(ws: WebSocket, sessionId: string, message: CommandMessage): Promise<void> {
+    const { command } = message.payload;
+
+    if (command === 'clear') {
+      this.aiService.clearConversation(sessionId);
+
+      const clearCommand: CommandMessage = {
+        id: crypto.randomUUID(),
+        type: 'command',
+        payload: { command: 'clear' },
+        timestamp: Date.now()
+      };
+      this.sendToClient(ws, clearCommand);
+
+      const response: LLMResponseMessage = {
+        id: crypto.randomUUID(),
+        type: 'llm_response',
+        payload: { content: '✅ Conversation cleared' },
+        timestamp: Date.now()
+      };
+      this.sendToClient(ws, response);
+    } else {
+      this.sendError(ws, `Unknown command: /${command}`);
+    }
   }
 
   private sendToClient(ws: WebSocket, message: WSMessage): void {

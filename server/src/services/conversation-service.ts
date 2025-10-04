@@ -57,6 +57,10 @@ export class ConversationService {
       }));
   }
 
+  clear(sessionId: string): void {
+    this.conversations.set(sessionId, []);
+  }
+
   private ensureSession(sessionId: string): void {
     if (!this.conversations.has(sessionId)) {
       this.conversations.set(sessionId, []);

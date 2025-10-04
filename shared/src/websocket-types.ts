@@ -3,7 +3,7 @@ import { z } from 'zod';
 // shared/types.ts
 export interface WSMessage<T = unknown> {
     id: string;
-    type: 'user_input' | 'tool_call' | 'tool_result' | 'llm_response' | 'error' | 'plan_data';
+    type: 'user_input' | 'tool_call' | 'tool_result' | 'llm_response' | 'error' | 'plan_data' | 'command';
     payload: T;
     timestamp: number;
   }
@@ -82,6 +82,10 @@ export interface WSMessage<T = unknown> {
     code?: string;
   }
 
+  export interface CommandPayload {
+    command: string;
+  }
+
   export enum TaskStatus {
     PENDING = 'pending',
     IN_PROGRESS = 'in_progress',
@@ -119,4 +123,5 @@ export interface WSMessage<T = unknown> {
   export type LLMResponseMessage = WSMessage<LLMResponsePayload>;
   export type ErrorMessage = WSMessage<ErrorPayload>;
   export type PlanDataMessage = WSMessage<PlanDataPayload>;
+  export type CommandMessage = WSMessage<CommandPayload>;
 

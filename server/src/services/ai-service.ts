@@ -53,6 +53,10 @@ export class AIService {
     }
   }
 
+  clearConversation(sessionId: string): void {
+    this.conversationService.clear(sessionId);
+  }
+
   private async runGeneration(
     sessionId: string,
     sendToClient: (message: WSMessage) => void

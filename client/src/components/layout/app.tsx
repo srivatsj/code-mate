@@ -1,4 +1,4 @@
-import { LLMResponseMessage, PlanDataMessage, ToolCallMessage } from '@shared/websocket-types';
+import { CommandMessage, LLMResponseMessage, PlanDataMessage, ToolCallMessage } from '@shared/websocket-types';
 import { Box, Text } from 'ink';
 import { useEffect, useState } from 'react';
 
@@ -76,6 +76,12 @@ const App = () => {
         }
       });
     };
+
+    client.onCommand = (message: CommandMessage) => {
+      if (message.payload.command === 'clear') {
+        setMessages([]);
+      }
+    };
   }, [client]);
 
   const handleSubmit = () => {
@@ -91,12 +97,16 @@ const App = () => {
     }
   };
 
+  const handleCommand = (command: string) => {
+    client.sendCommand(command);
+    setInput('');
+  };
 
   return (
     <Box flexDirection="column">
       <Text color="blue">🤖 CodeMate</Text>
       <MessageList messages={messages} isLoading={isLoading} />
-      <ChatInput input={input} onInputChange={setInput} onSubmit={handleSubmit} />
+      <ChatInput input={input} onInputChange={setInput} onSubmit={handleSubmit} onCommand={handleCommand} />
     </Box>
   );
 };

@@ -1,4 +1,4 @@
-import { ErrorMessage,LLMResponseMessage,PlanDataMessage,ToolCallMessage, ToolResultMessage, UserInputMessage, WSMessage } from '@shared/websocket-types';
+import { CommandMessage, ErrorMessage,LLMResponseMessage,PlanDataMessage,ToolCallMessage, ToolResultMessage, UserInputMessage, WSMessage } from '@shared/websocket-types';
 import WebSocket from 'ws';
 
 import logger from './common/logger';
@@ -42,6 +42,9 @@ export class WebSocketClient {
           });
           this.onPlanData?.(planMessage);
           logger.info('Plan data callback executed');
+          break;
+        case 'command':
+          this.onCommand?.(message as CommandMessage);
           break;
       }
     });
@@ -102,9 +105,21 @@ export class WebSocketClient {
     this.send(message);
   }
 
+  public sendCommand(command: string): void {
+    logger.info('Sending command: %s', command);
+    const message: CommandMessage = {
+      id: crypto.randomUUID(),
+      type: 'command',
+      payload: { command },
+      timestamp: Date.now()
+    };
+    this.send(message);
+  }
+
   // Type-safe callbacks
   onLLMResponse?: (message: LLMResponseMessage) => void;
   onError?: (error: string) => void;
   onToolCall?: (message: ToolCallMessage) => void;
   onPlanData?: (message: PlanDataMessage) => void;
+  onCommand?: (message: CommandMessage) => void;
 }
