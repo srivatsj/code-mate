@@ -94,6 +94,33 @@ export class WebSocketServerHandler {
         timestamp: Date.now()
       };
       this.sendToClient(ws, response);
+    } else if (command === 'compact') {
+      try {
+        const success = await this.aiService.compactConversation(sessionId, (msg) => this.sendToClient(ws, msg));
+
+        // Only clear UI and send success message if compaction actually happened
+        if (success) {
+          // Send clear command first
+          const compactCommand: CommandMessage = {
+            id: crypto.randomUUID(),
+            type: 'command',
+            payload: { command: 'compact' },
+            timestamp: Date.now()
+          };
+          this.sendToClient(ws, compactCommand);
+
+          // Then send success message (will appear after clear)
+          const response: LLMResponseMessage = {
+            id: crypto.randomUUID(),
+            type: 'llm_response',
+            payload: { content: '✅ Conversation compacted' },
+            timestamp: Date.now()
+          };
+          this.sendToClient(ws, response);
+        }
+      } catch (error) {
+        this.sendError(ws, `Failed to compact conversation: ${error instanceof Error ? error.message : String(error)}`);
+      }
     } else {
       this.sendError(ws, `Unknown command: /${command}`);
     }

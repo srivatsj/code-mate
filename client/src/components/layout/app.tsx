@@ -80,6 +80,8 @@ const App = () => {
     client.onCommand = (message: CommandMessage) => {
       if (message.payload.command === 'clear') {
         setMessages([]);
+      } else if (message.payload.command === 'compact') {
+        setMessages([]);
       }
     };
   }, [client]);

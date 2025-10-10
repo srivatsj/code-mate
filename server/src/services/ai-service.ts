@@ -57,6 +57,50 @@ export class AIService {
     this.conversationService.clear(sessionId);
   }
 
+  async compactConversation(
+    sessionId: string,
+    sendToClient: (message: WSMessage) => void
+  ): Promise<boolean> {
+    const history = this.conversationService.getHistory(sessionId);
+
+    if (history.length === 0) {
+      const response: LLMResponseMessage = {
+        id: crypto.randomUUID(),
+        type: 'llm_response',
+        payload: { content: '⚠️  No conversation to compact' },
+        timestamp: Date.now(),
+      };
+      sendToClient(response);
+      return false;
+    }
+
+    try {
+      // Ask LLM to summarize the conversation
+      const result = await generateText({
+        model: this.googleAI('gemini-2.5-flash'),
+        messages: [
+          ...history,
+          {
+            role: 'user',
+            content: 'Please provide a concise summary of our conversation so far, including key topics discussed, decisions made, and any important context that should be preserved.'
+          }
+        ],
+        system: SYSTEM_PROMPT,
+      });
+
+      const summary = result.text;
+
+      // Replace conversation history with summary
+      await this.conversationService.compact(sessionId, summary);
+
+      logger.info('[AIService] Conversation compacted for session %s', sessionId);
+      return true;
+    } catch (error) {
+      logger.error('[AIService] Error compacting conversation for session %s: %s', sessionId, error instanceof Error ? error.message : String(error));
+      throw error;
+    }
+  }
+
   private async runGeneration(
     sessionId: string,
     sendToClient: (message: WSMessage) => void

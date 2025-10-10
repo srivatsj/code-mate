@@ -61,6 +61,25 @@ export class ConversationService {
     this.conversations.set(sessionId, []);
   }
 
+  async compact(sessionId: string, summary: string): Promise<void> {
+    this.ensureSession(sessionId);
+    // Replace entire conversation history with just the summary
+    this.conversations.set(sessionId, [{
+      role: 'user',
+      content: `[Previous conversation summary]: ${summary}`,
+      timestamp: Date.now()
+    }]);
+
+    try {
+      const messages = this.conversations.get(sessionId) || [];
+      const folderPath = '/tmp/codemate/server';
+      await fs.mkdir(folderPath, { recursive: true });
+      await fs.writeFile(`${folderPath}/conversation_${sessionId}.json`, JSON.stringify(messages, null, 2));
+    } catch (error) {
+      console.error('Failed to write conversation file:', error);
+    }
+  }
+
   private ensureSession(sessionId: string): void {
     if (!this.conversations.has(sessionId)) {
       this.conversations.set(sessionId, []);
