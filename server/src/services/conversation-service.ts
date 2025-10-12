@@ -4,52 +4,51 @@ import fs from 'fs/promises';
 import { ConversationMessage } from '../common/types';
 
 export class ConversationService {
-  private conversations = new Map<string, ConversationMessage[]>();
+  private messages: ConversationMessage[] = [];
 
-  private async addMessage(sessionId: string, message: ConversationMessage): Promise<void> {
-    this.ensureSession(sessionId);
-    this.conversations.get(sessionId)!.push(message);
+  constructor(private sessionId: string) {}
+
+  private async addMessage(message: ConversationMessage): Promise<void> {
+    this.messages.push(message);
 
     try {
-      const messages = this.conversations.get(sessionId) || [];
       const folderPath = '/tmp/codemate/server';
       await fs.mkdir(folderPath, { recursive: true });
-      await fs.writeFile(`${folderPath}/conversation_${sessionId}.json`, JSON.stringify(messages, null, 2));
+      await fs.writeFile(`${folderPath}/conversation_${this.sessionId}.json`, JSON.stringify(this.messages, null, 2));
     } catch (error) {
       console.error('Failed to write conversation file:', error);
     }
   }
 
-  addUserMessage(sessionId: string, content: string): void {
-    this.addMessage(sessionId, {
+  addUserMessage(content: string): void {
+    this.addMessage({
       role: 'user',
       content,
       timestamp: Date.now()
     });
   }
 
-  addAssistantMessage(sessionId: string, content: string): void {
-    this.addMessage(sessionId, {
+  addAssistantMessage(content: string): void {
+    this.addMessage({
       role: 'assistant',
       content,
       timestamp: Date.now()
     });
   }
 
-  addToolResult(sessionId: string, result: ToolResultPayload): void {
+  addToolResult(result: ToolResultPayload): void {
     const content = result.error
       ? `Tool execution failed: ${result.error}`
       : `Tool executed successfully. Result: ${JSON.stringify(result.result)}`;
-    this.addMessage(sessionId, {
+    this.addMessage({
       role: 'user',
       content: `[Tool completed] ${content}`,
       timestamp: Date.now()
     });
   }
 
-  getHistory(sessionId: string): Array<{ role: 'user' | 'assistant'; content: string }> {
-    const messages = this.conversations.get(sessionId) || [];
-    return messages.slice(-20)
+  getHistory(): Array<{ role: 'user' | 'assistant'; content: string }> {
+    return this.messages.slice(-20)
       .filter(msg => msg.role === 'user' || msg.role === 'assistant')
       .map(msg => ({
         role: msg.role as 'user' | 'assistant',
@@ -57,32 +56,24 @@ export class ConversationService {
       }));
   }
 
-  clear(sessionId: string): void {
-    this.conversations.set(sessionId, []);
+  clear(): void {
+    this.messages = [];
   }
 
-  async compact(sessionId: string, summary: string): Promise<void> {
-    this.ensureSession(sessionId);
+  async compact(summary: string): Promise<void> {
     // Replace entire conversation history with just the summary
-    this.conversations.set(sessionId, [{
+    this.messages = [{
       role: 'user',
       content: `[Previous conversation summary]: ${summary}`,
       timestamp: Date.now()
-    }]);
+    }];
 
     try {
-      const messages = this.conversations.get(sessionId) || [];
       const folderPath = '/tmp/codemate/server';
       await fs.mkdir(folderPath, { recursive: true });
-      await fs.writeFile(`${folderPath}/conversation_${sessionId}.json`, JSON.stringify(messages, null, 2));
+      await fs.writeFile(`${folderPath}/conversation_${this.sessionId}.json`, JSON.stringify(this.messages, null, 2));
     } catch (error) {
       console.error('Failed to write conversation file:', error);
-    }
-  }
-
-  private ensureSession(sessionId: string): void {
-    if (!this.conversations.has(sessionId)) {
-      this.conversations.set(sessionId, []);
     }
   }
 }

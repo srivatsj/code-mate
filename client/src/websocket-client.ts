@@ -1,4 +1,4 @@
-import { CommandMessage, ErrorMessage,LLMResponseMessage,PlanDataMessage,ToolCallMessage, ToolResultMessage, UserInputMessage, WSMessage } from '@shared/websocket-types';
+import { CommandMessage, ErrorMessage,LLMResponseMessage, MCPToolsMessage,PlanDataMessage,ToolCallMessage, ToolResultMessage, UserInputMessage, WSMessage } from '@shared/websocket-types';
 import WebSocket from 'ws';
 
 import logger from './common/logger';
@@ -7,10 +7,35 @@ import { ClientTools } from './tools/client-tools';
 export class WebSocketClient {
   private ws: WebSocket;
   private clientTools = new ClientTools();
+  private mcpToolsReady = false;
 
   constructor(url: string) {
     this.ws = new WebSocket(url);
     this.setupHandlers();
+    this.initializeClientTools();
+  }
+
+  private async initializeClientTools(): Promise<void> {
+    await this.clientTools.initialize();
+    this.mcpToolsReady = true;
+    // Send MCP tools if WebSocket is already open
+    if (this.ws.readyState === WebSocket.OPEN) {
+      await this.sendMCPTools();
+    }
+  }
+
+  private async sendMCPTools(): Promise<void> {
+    const tools = this.clientTools.getMCPToolDefinitions();
+    if (tools.length > 0) {
+      const message: MCPToolsMessage = {
+        id: crypto.randomUUID(),
+        type: 'mcp_tools',
+        payload: { tools },
+        timestamp: Date.now()
+      };
+      this.send(message);
+      logger.info('Sent %d MCP tool definitions to server', tools.length);
+    }
   }
 
   private setupHandlers(): void {
@@ -54,13 +79,18 @@ export class WebSocketClient {
       this.onError?.(`Connection error: ${error.message}`);
     });
 
-    this.ws.on('close', () => {
+    this.ws.on('close', async () => {
       logger.info('WebSocket connection closed');
+      await this.clientTools.close();
       this.onError?.('Connection closed');
     });
 
-    this.ws.on('open', () => {
+    this.ws.on('open', async () => {
       logger.info('WebSocket connected');
+      // Send MCP tools if they're already initialized
+      if (this.mcpToolsReady) {
+        await this.sendMCPTools();
+      }
     });
   }
 

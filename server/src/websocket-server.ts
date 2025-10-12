@@ -1,15 +1,12 @@
-import { CommandMessage, ErrorMessage, LLMResponseMessage, ToolResultMessage, UserInputMessage, WSMessage } from '@shared/websocket-types';
-import { WebSocket, WebSocketServer } from 'ws';
+import { CommandMessage, ErrorMessage, LLMResponseMessage, MCPToolsMessage, ToolResultMessage, UserInputMessage, WSMessage } from '@shared/websocket-types';
+import { WebSocketServer } from 'ws';
 
 import logger from './common/logger';
-import { AIService } from './services/ai-service';
-import { ToolCoordinator } from './tools/tool-coordinator';
+import { Session } from './services/session';
 
 export class WebSocketServerHandler {
   private wss: WebSocketServer;
-  private toolCoordinator = new ToolCoordinator();
-  private aiService = new AIService(this.toolCoordinator);
-  private sessions = new Map<string, WebSocket>();
+  private sessions = new Map<string, Session>();
 
   constructor(wss: WebSocketServer) {
     this.wss = wss;
@@ -19,30 +16,46 @@ export class WebSocketServerHandler {
   private setupHandlers(): void {
     this.wss.on('connection', (ws) => {
       const sessionId = crypto.randomUUID();
-      this.sessions.set(sessionId, ws);
+      const session = new Session(sessionId, ws);
+      this.sessions.set(sessionId, session);
       logger.info('WebSocket client connected: %s', sessionId);
 
       ws.on('message', async (data) => {
+        const session = this.sessions.get(sessionId);
+        if (!session) {
+          logger.warn('Session not found: %s', sessionId);
+          return;
+        }
+
         try {
           const message: WSMessage = JSON.parse(data.toString());
           logger.info('Received message type %s from session %s', message.type, sessionId);
 
           switch (message.type) {
+            case 'mcp_tools':
+              this.handleMCPTools(session, message as MCPToolsMessage);
+              break;
             case 'user_input':
-              await this.handleUserInput(ws, sessionId, message as UserInputMessage);
+              await this.handleUserInput(session, message as UserInputMessage);
               break;
             case 'tool_result':
-              await this.handleToolResult(ws, sessionId, message as ToolResultMessage);
+              await this.handleToolResult(session, message as ToolResultMessage);
               break;
             case 'command':
-              await this.handleCommand(ws, sessionId, message as CommandMessage);
+              await this.handleCommand(session, message as CommandMessage);
               break;
             default:
               logger.warn('Unknown message type %s from session %s', message.type, sessionId);
           }
         } catch (error) {
           logger.error('Error processing message from session %s: %s', sessionId, error instanceof Error ? error.message : String(error));
-          this.sendError(ws, error instanceof Error ? error.message : 'Unknown error');
+          const errorMessage: ErrorMessage = {
+            id: crypto.randomUUID(),
+            type: 'error',
+            payload: { message: error instanceof Error ? error.message : 'Unknown error' },
+            timestamp: Date.now()
+          };
+          session.sendToClient(errorMessage);
         }
       });
 
@@ -57,27 +70,25 @@ export class WebSocketServerHandler {
     });
   }
 
-  private async handleUserInput(ws: WebSocket, sessionId: string, message: UserInputMessage): Promise<void> {
-    await this.aiService.processUserInput(
-      sessionId,
-      message.payload.content,
-      (response) => this.sendToClient(ws, response)
-    );
+  private handleMCPTools(session: Session, message: MCPToolsMessage): void {
+    logger.info('Registering %d MCP tools for session %s', message.payload.tools.length, session.sessionId);
+    session.registerMCPTools(message.payload.tools);
   }
 
-  private async handleToolResult(ws: WebSocket, sessionId: string, message: ToolResultMessage): Promise<void> {
-    await this.aiService.processToolResult(
-      sessionId,
-      message.payload,
-      (response) => this.sendToClient(ws, response)
-    );
+  private async handleUserInput(session: Session, message: UserInputMessage): Promise<void> {
+    await session.aiService.processUserInput(message.payload.content);
   }
 
-  private async handleCommand(ws: WebSocket, sessionId: string, message: CommandMessage): Promise<void> {
+  private async handleToolResult(session: Session, message: ToolResultMessage): Promise<void> {
+    await session.aiService.processToolResult(message.payload);
+  }
+
+  private async handleCommand(session: Session, message: CommandMessage): Promise<void> {
+
     const { command } = message.payload;
 
     if (command === 'clear') {
-      this.aiService.clearConversation(sessionId);
+      session.aiService.clearConversation();
 
       const clearCommand: CommandMessage = {
         id: crypto.randomUUID(),
@@ -85,7 +96,7 @@ export class WebSocketServerHandler {
         payload: { command: 'clear' },
         timestamp: Date.now()
       };
-      this.sendToClient(ws, clearCommand);
+      session.sendToClient(clearCommand);
 
       const response: LLMResponseMessage = {
         id: crypto.randomUUID(),
@@ -93,50 +104,45 @@ export class WebSocketServerHandler {
         payload: { content: '✅ Conversation cleared' },
         timestamp: Date.now()
       };
-      this.sendToClient(ws, response);
+      session.sendToClient(response);
     } else if (command === 'compact') {
       try {
-        const success = await this.aiService.compactConversation(sessionId, (msg) => this.sendToClient(ws, msg));
+        const success = await session.aiService.compactConversation();
 
-        // Only clear UI and send success message if compaction actually happened
         if (success) {
-          // Send clear command first
           const compactCommand: CommandMessage = {
             id: crypto.randomUUID(),
             type: 'command',
             payload: { command: 'compact' },
             timestamp: Date.now()
           };
-          this.sendToClient(ws, compactCommand);
+          session.sendToClient(compactCommand);
 
-          // Then send success message (will appear after clear)
           const response: LLMResponseMessage = {
             id: crypto.randomUUID(),
             type: 'llm_response',
             payload: { content: '✅ Conversation compacted' },
             timestamp: Date.now()
           };
-          this.sendToClient(ws, response);
+          session.sendToClient(response);
         }
       } catch (error) {
-        this.sendError(ws, `Failed to compact conversation: ${error instanceof Error ? error.message : String(error)}`);
+        const errorMessage: ErrorMessage = {
+          id: crypto.randomUUID(),
+          type: 'error',
+          payload: { message: `Failed to compact conversation: ${error instanceof Error ? error.message : String(error)}` },
+          timestamp: Date.now()
+        };
+        session.sendToClient(errorMessage);
       }
     } else {
-      this.sendError(ws, `Unknown command: /${command}`);
+      const errorMessage: ErrorMessage = {
+        id: crypto.randomUUID(),
+        type: 'error',
+        payload: { message: `Unknown command: /${command}` },
+        timestamp: Date.now()
+      };
+      session.sendToClient(errorMessage);
     }
-  }
-
-  private sendToClient(ws: WebSocket, message: WSMessage): void {
-    ws.send(JSON.stringify(message));
-  }
-
-  private sendError(ws: WebSocket, error: string): void {
-    const message: ErrorMessage = {
-      id: crypto.randomUUID(),
-      type: 'error',
-      payload: { message: error },
-      timestamp: Date.now()
-    };
-    this.sendToClient(ws, message);
   }
 }

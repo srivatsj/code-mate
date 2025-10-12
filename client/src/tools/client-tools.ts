@@ -3,6 +3,8 @@ import fs from 'fs/promises';
 import path from 'path';
 import { promisify } from 'util';
 
+import { MCPManager } from '../mcp/mcp-manager';
+
 const exec = promisify(execCallback);
 
 
@@ -11,10 +13,19 @@ interface ToolResult {
     data?: any; // eslint-disable-line @typescript-eslint/no-explicit-any
     error?: string;
 }
-  
+
 export class ClientTools {
     private userCwd = process.env.USER_CWD || process.cwd();
     private readFiles = new Set<string>(); // Track files that have been read
+    private mcpManager = new MCPManager();
+
+    async initialize(): Promise<void> {
+        await this.mcpManager.initialize();
+    }
+
+    getMCPToolDefinitions() {
+        return this.mcpManager.getToolDefinitions();
+    }
 
     async execute(toolName: string, args: Record<string, any>): Promise<ToolResult> { // eslint-disable-line @typescript-eslint/no-explicit-any
         switch (toolName) {
@@ -33,8 +44,28 @@ export class ClientTools {
         case 'web_fetch':
             return this.webFetch(args.url);
         default:
+            // Handle dynamic MCP tools
+            if (toolName.startsWith('mcp__')) {
+                return this.executeMCPTool(toolName, args);
+            }
             throw new Error(`Unknown tool: ${toolName}`);
         }
+    }
+
+    private async executeMCPTool(toolName: string, args: Record<string, any>): Promise<ToolResult> { // eslint-disable-line @typescript-eslint/no-explicit-any
+        try {
+            const result = await this.mcpManager.executeTool(toolName, args);
+            return {
+                success: true,
+                data: result
+            };
+        } catch (error) {
+            throw new Error(`MCP tool failed: ${error instanceof Error ? error.message : String(error)}`);
+        }
+    }
+
+    async close(): Promise<void> {
+        await this.mcpManager.close();
     }
 
     private async readFile(filePath: string): Promise<ToolResult> {

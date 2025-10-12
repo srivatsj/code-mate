@@ -3,7 +3,7 @@ import { z } from 'zod';
 // shared/types.ts
 export interface WSMessage<T = unknown> {
     id: string;
-    type: 'user_input' | 'tool_call' | 'tool_result' | 'llm_response' | 'error' | 'plan_data' | 'command';
+    type: 'user_input' | 'tool_call' | 'tool_result' | 'llm_response' | 'error' | 'plan_data' | 'command' | 'mcp_tools';
     payload: T;
     timestamp: number;
   }
@@ -86,6 +86,14 @@ export interface WSMessage<T = unknown> {
     command: string;
   }
 
+  export interface MCPToolsPayload {
+    tools: Array<{
+      name: string;
+      description: string;
+      parameters: any; // eslint-disable-line @typescript-eslint/no-explicit-any
+    }>;
+  }
+
   export enum TaskStatus {
     PENDING = 'pending',
     IN_PROGRESS = 'in_progress',
@@ -124,4 +132,5 @@ export interface WSMessage<T = unknown> {
   export type ErrorMessage = WSMessage<ErrorPayload>;
   export type PlanDataMessage = WSMessage<PlanDataPayload>;
   export type CommandMessage = WSMessage<CommandPayload>;
+  export type MCPToolsMessage = WSMessage<MCPToolsPayload>;
 

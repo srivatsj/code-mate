@@ -44,6 +44,9 @@ importers:
 
   client:
     dependencies:
+      ai:
+        specifier: ^5.0.51
+        version: 5.0.51(zod@4.1.11)
       glob:
         specifier: ^11.0.3
         version: 11.0.3

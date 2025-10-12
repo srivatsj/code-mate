@@ -2,16 +2,47 @@ import { BashSchema, EditSchema, GlobSchema, GrepSchema, ReadFileSchema, ToolArg
 import { tool } from 'ai';
 import { z } from 'zod';
 
+import logger from '../common/logger';
 import { ToolCoordinator } from './tool-coordinator';
 
 export class ClientTools {
+  private mcpTools: Record<string, any> = {}; // eslint-disable-line @typescript-eslint/no-explicit-any
+
   constructor(
     private sendToClient: (message: WSMessage) => void,
     private toolCoordinator: ToolCoordinator
   ) {}
 
+  registerMCPTools(toolDefinitions: Array<{ name: string; description: string; parameters: any }>): void { // eslint-disable-line @typescript-eslint/no-explicit-any
+    logger.info('[ClientTools] Registering %d MCP tools', toolDefinitions.length);
+    for (const def of toolDefinitions) {
+      // Build description with parameter info
+      let fullDescription = def.description;
+      if (def.parameters?.properties) {
+        const params = Object.entries(def.parameters.properties).map(([name, prop]: [string, any]) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+          const required = def.parameters.required?.includes(name) ? 'required' : 'optional';
+          return `${name} (${prop.type}, ${required}): ${prop.description || ''}`;
+        }).join(', ');
+        fullDescription += ` Parameters: ${params}`;
+      }
+
+      this.mcpTools[def.name] = tool({
+        description: fullDescription,
+        inputSchema: z.any(),
+        execute: async (args: any) => { // eslint-disable-line @typescript-eslint/no-explicit-any
+          const toolId = crypto.randomUUID();
+          this.sendToolCall(def.name, args, toolId);
+          return await this.toolCoordinator.createPending(toolId);
+        }
+      });
+      logger.info('[ClientTools] Registered MCP tool: %s - %s', def.name, fullDescription);
+    }
+    logger.info('[ClientTools] Total tools available: %d', Object.keys(this.getClientToolProxies()).length);
+  }
+
   getClientToolProxies() {
     return {
+      ...this.mcpTools,
       read_file: tool({
         description: 'Read file contents',
         inputSchema: ReadFileSchema,
